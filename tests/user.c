@@ -1,8 +1,10 @@
-#include "node/tuplespace.h"
+#include "node/tuple_space.h"
 
 int main(int argc, char* argv[argc + 1]) {
 
-    // Use tuple space API
+    // out - adding tuple to space
+    // inp - retrieving tuple from space
+    // rdp - reading tuple from space
 
     // return EXIT_SUCCESS
 }
