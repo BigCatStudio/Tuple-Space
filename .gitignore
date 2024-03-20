@@ -53,3 +53,4 @@ dkms.conf
 
 # custom
 *notes-project_tuples*
+.vscode/
