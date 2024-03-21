@@ -9,17 +9,20 @@ int main(int argc, char* argv[argc + 1]) {
 
     int nice_power;
     double temp, pi;
-    field_t my_tuple[2]; /* an array of fields (name not included) */
+    field_t my_tuple[3]; /* an array of fields (name not included) */
     field_t my_template[1];
     /* make a tuple */
     my_tuple[0].is_actual = TS_YES;
     my_tuple[0].type = TS_INT;
-    my_tuple[0].data.int_field = 128;
+    my_tuple[0].data.int_field = 0xAABBCCDD;
     my_tuple[1].is_actual = TS_YES;
-    my_tuple[1].type = TS_FLOAT;
-    my_tuple[1].data.float_field = 3.14;
+    my_tuple[1].type = TS_STRING;
+    my_tuple[1].data.string_field = "Test message";
+    my_tuple[2].is_actual = TS_YES;
+    my_tuple[2].type = TS_FLOAT;
+    my_tuple[2].data.float_field = 3.14;
     /* add a tuple to the tuple space */
-    ts_out("nice_constants", my_tuple, 2); /* ("nice_constants",128,3.14) */
+    ts_out("nice_constants", my_tuple, 3); /* ("nice_constants",128,3.14) */
 
     
     // /* make a template */
