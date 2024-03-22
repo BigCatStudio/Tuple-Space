@@ -12,30 +12,30 @@ int main(int argc, char* argv[argc + 1]) {
     field_t my_tuple[3]; /* an array of fields (name not included) */
     field_t my_template[3];
     /* make a tuple */
-    // my_tuple[0].is_actual = TS_YES;
-    // my_tuple[0].type = TS_INT;
-    // my_tuple[0].data.int_field = 0xAABBCCDD;
-    // my_tuple[1].is_actual = TS_YES;
-    // my_tuple[1].type = TS_STRING;
-    // my_tuple[1].data.string_field = "Test message";
-    // my_tuple[2].is_actual = TS_YES;
-    // my_tuple[2].type = TS_FLOAT;
-    // my_tuple[2].data.float_field = 3.14;
-    // /* add a tuple to the tuple space */
-    // ts_out("nice_constants", my_tuple, 3); /* ("nice_constants",128,3.14) */
+    my_tuple[0].is_actual = TS_YES;
+    my_tuple[0].type = TS_INT;
+    my_tuple[0].data.int_field = 123456789;
+    my_tuple[1].is_actual = TS_YES;
+    my_tuple[1].type = TS_STRING;
+    init_string(&(my_tuple[1].data.string_field), "Test message", strlen("Test message") + 1);
+    my_tuple[2].is_actual = TS_YES;
+    my_tuple[2].type = TS_FLOAT;
+    my_tuple[2].data.float_field = 3.14;
+    /* add a tuple to the tuple space */
+    ts_inp("nice_constants", my_tuple, 3); /* ("nice_constants",128,3.14) */
 
     
-    /* make a template */
-    my_template[0].is_actual = TS_NO;
-    my_template[0].type = TS_FLOAT; /* need to specify the type */
-    my_template[1].is_actual = TS_NO;
-    my_template[1].type = TS_STRING; /* need to specify the type */
-    my_template[2].is_actual = TS_NO;
-    my_template[2].type = TS_INT; /* need to specify the type */
-    /* retrieve and remove a tuple with temperature */
-    /* some other process must have produced a tuple matching the template */
-    ts_inp("temperature", my_template, 3); /* ("temperature",?float) */
-    /* temp = my_template[0].data.float_field; */
+    // /* make a template */
+    // my_template[0].is_actual = TS_NO;
+    // my_template[0].type = TS_FLOAT; /* need to specify the type */
+    // my_template[1].is_actual = TS_NO;
+    // my_template[1].type = TS_STRING; /* need to specify the type */
+    // my_template[2].is_actual = TS_NO;
+    // my_template[2].type = TS_INT; /* need to specify the type */
+    // /* retrieve and remove a tuple with temperature */
+    // /* some other process must have produced a tuple matching the template */
+    // ts_inp("temperature", my_template, 3); /* ("temperature",?float) */
+    // /* temp = my_template[0].data.float_field; */
 
     // /* transform a previously used tuple into a template */
     // my_tuple[0].is_actual = NO;

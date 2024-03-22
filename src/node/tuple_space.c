@@ -17,6 +17,8 @@
 #define BUFFER_LENGTH 1024
 char buffer[BUFFER_LENGTH];
 
+// TODO add checks for null pointers at the beginning of functions
+
 // TODO add translation to big endian for transmitting through network
 static void code_int(char numeric_buffer[static NUMERIC_LENGTH], const int value) {
     memcpy(numeric_buffer, &value, NUMERIC_LENGTH);
@@ -40,7 +42,7 @@ static size_t serialize_data_segment(const char* tuple_name, field_t fields[cons
             case TS_INT: {
                 if(fields[i].is_actual == TS_YES) {
                     values_buffer[0] = (char)INT_YES;
-                    code_int(values_buffer + 1, fields[i].data.int_field);
+                    memcpy(values_buffer + 1, &(fields[i].data.int_field), NUMERIC_LENGTH);
                     strncpy(buffer + data_segment_size, values_buffer, 5);
                     data_segment_size += NUMERIC_LENGTH + 1;
                 } else if(fields[i].is_actual == TS_NO) {
@@ -55,7 +57,7 @@ static size_t serialize_data_segment(const char* tuple_name, field_t fields[cons
             case TS_FLOAT: {
                 if(fields[i].is_actual == TS_YES) {
                     values_buffer[0] = (char)FLOAT_YES;
-                    code_float(values_buffer + 1, fields[i].data.float_field);
+                    memcpy(values_buffer + 1, &(fields[i].data.float_field), NUMERIC_LENGTH);
                     strncpy(buffer + data_segment_size, values_buffer, 5);
                     data_segment_size += NUMERIC_LENGTH + 1;
                 } else if(fields[i].is_actual == TS_NO) {
@@ -96,7 +98,7 @@ static size_t serialize_data_segment(const char* tuple_name, field_t fields[cons
 }
 
 
-/* returns size of data segment in bytes */
+// returns size of data segment in bytes
 static size_t deserialize_data_segment(const char* tuple_name, field_t fields[const]) {
     // Checking if tuple name is the same as provided by template
     if(strncmp(tuple_name, buffer, strlen(tuple_name)) != 0) {
@@ -113,18 +115,28 @@ static size_t deserialize_data_segment(const char* tuple_name, field_t fields[co
             case (char)INT_YES: {
                 fields[index].is_actual = TS_YES;
                 fields[index].type = TS_INT;
-                memcpy(&fields[index].data.int_field, &(buffer[data_segment_size + 1]), NUMERIC_LENGTH);
+                data_segment_size++;
+                memcpy(&fields[index].data.int_field, &(buffer[data_segment_size]), NUMERIC_LENGTH);
+                data_segment_size += NUMERIC_LENGTH;
                 break;
             }
             case (char)FLOAT_YES: {
                 fields[index].is_actual = TS_YES;
                 fields[index].type = TS_FLOAT;
-                memcpy(&fields[index].data.float_field, &(buffer[data_segment_size + 1]), NUMERIC_LENGTH);
+                data_segment_size++;
+                memcpy(&fields[index].data.float_field, &(buffer[data_segment_size]), NUMERIC_LENGTH);
+                data_segment_size += NUMERIC_LENGTH;
                 break;
             }
             case (char)STRING_YES: {
                 fields[index].is_actual = TS_YES;
                 fields[index].type = TS_STRING;
+                data_segment_size++;
+                bool status = init_string(&(fields[index].data.string_field), &(buffer[data_segment_size]), strlen(&(buffer[data_segment_size])) + 1);
+                data_segment_size += strlen(fields[index].data.string_field) + 1;   // string length + '\0'
+                if(status == EXIT_FAILURE) {
+                    // TODO handle error of not allocating memory
+                }
                 // memcpy(&fields[index].data.string_field, &(buffer[data_segment_size + 1]), NUMERIC_LENGTH);
                 // how to make memory that will be legit in main still?
                 break;
@@ -134,6 +146,46 @@ static size_t deserialize_data_segment(const char* tuple_name, field_t fields[co
             }
         }
         index++;
+    }
+    data_segment_size++;    // Last byte for END of TRANSMISSION BLOCK
+
+    return data_segment_size;
+}
+
+
+/********************** API DEFINITION **********************/
+
+// Allocates memory for string based on string_source of given length (length includes string and '\0' character)
+bool init_string(char** const string_field, const char* const string_source, const size_t length) {
+    *string_field = malloc(length);  // Assuming char is one byte
+    if(!(*string_field)) {
+        // TODO error handling, memory not allocated
+        return EXIT_FAILURE;
+    }
+
+    strncpy(*string_field, string_source, length - 1);
+    (*string_field)[length - 1] = (char)END_STRING;
+    return EXIT_SUCCESS;
+}
+
+// Deallocates current string and allocates memory for new string
+bool change_string(char** const string_field, const char* const string_source, const size_t length) {
+    *string_field = realloc(*string_field, length);   // It leave current block or deallocate old and allocate new
+    if(!(*string_field)) {
+        // TODO handle error
+        return EXIT_FAILURE;
+    }
+
+    strncpy(*string_field, string_source, length);
+    return EXIT_SUCCESS;
+}
+
+// Should always be called at the end of using tuples. It deallocates any strings
+void destroy_tuple(field_t* tuples, const size_t fields_amount) {
+    for(size_t i = 0;i < fields_amount; i++) {
+        if(tuples[i].type == TS_STRING && tuples[i].is_actual == TS_YES) {      // Checking if field is string and actually contains string
+            free(tuples[i].data.string_field);
+        }
     }
 }
 
@@ -160,6 +212,8 @@ bool ts_out(const char* tuple_name, field_t fields[const], const int fields_amou
     // send via network to server as char[]
     // network module will add ALP, but provide necessary informations for ALP
 
+
+
     return true;
 }
 
@@ -168,6 +222,7 @@ bool ts_inp(const char* tuple_name, field_t fields[], const int fields_amount) {
 
     // Creating char buffer with template
     size_t template_segment_size = serialize_data_segment(tuple_name, fields, fields_amount);
+    
     if(template_segment_size < 0) {
         // TODO user provided some invalid data when creating tuple fields
     } else if(template_segment_size == 0) {
@@ -184,13 +239,35 @@ bool ts_inp(const char* tuple_name, field_t fields[], const int fields_amount) {
     }
 
     // Sending a template by network - return char array should be written in provided buffer
-    size_t data_segment_size = 0;
     // bool status = ts_inp_network(buffer, template_segment_size, &data_segment_size);    
     // status should indicate if tuple was in space or not, data_segment_size should be set by ts_inp_network to indicate size of tuple from server
 
 
     // decode 
-    deserialize_data_segment(tuple_name, fields);
+    size_t data_segment_size = deserialize_data_segment(tuple_name, fields);
+
+#ifndef NDEBUG
+    printf("\nDATA SEGMENT SIZE:%lu\n", template_segment_size);
+    for(size_t i = 0;i < fields_amount;i++) {
+        switch(fields[i].type) {
+            case TS_INT: {
+                printf("%d\n", fields[i].data.int_field);
+                break;
+            }
+            case TS_FLOAT: {
+                printf("%g\n", fields[i].data.float_field);
+                break;
+            }
+            case TS_STRING: {
+                printf("%s\n", fields[i].data.string_field);
+                break;
+            }
+            default: {
+
+            }
+        }
+    }
+#endif // NDEBUG
 
 
     return true;

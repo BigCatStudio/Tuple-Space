@@ -32,6 +32,12 @@ typedef struct {
 } field_t; /* a new type corresponding to one field of a tuple */
 
 /* API */
+// TODO MOVE ALL COMMENTS ABOU WHAT FUNCTIONS DO FROM .C FILE TO THIS .H FILE
+
+bool init_string(char** const string_field, const char* const string_source, const size_t length);
+bool change_string(char** const string_field, const char* const string_source, const size_t length);
+void destroy_tuple(field_t* tuples, const size_t fields_amount);
+
 /* these functions return TS_SUCCESS or TS_FAILURE */
 /* parameters: tuple name, other fields, no. of other fields */
 /* they return status of operation: */
@@ -40,6 +46,7 @@ typedef struct {
 bool ts_out(const char* tuple_name, field_t fields[const], const int fields_amount);
 bool ts_inp(const char* tuple_name, field_t fields[], const int fields_amount);
 bool ts_rdp(const char* tuple_name, field_t fields[], const int fields_amount);
+
 
 
 
