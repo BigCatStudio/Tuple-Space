@@ -20,16 +20,10 @@ char buffer[BUFFER_LENGTH];
 // TODO add checks for null pointers at the beginning of functions
 
 // TODO add translation to big endian for transmitting through network
-static void code_int(char numeric_buffer[static NUMERIC_LENGTH], const int value) {
-    memcpy(numeric_buffer, &value, NUMERIC_LENGTH);
-}
 
-static void code_float(char numeric_buffer[static NUMERIC_LENGTH], const float value) {
-    memcpy(numeric_buffer, &value, NUMERIC_LENGTH);     // Assuming that nodes and server use IEEE-754 for coding float
-}
 
-/* returns size of data segment in bytes */
-static size_t serialize_data_segment(const char* tuple_name, field_t fields[const], const int fields_amount) {
+/* returns size of data segment in bytes, or -1 on error */
+static int serialize_data_segment(const char* tuple_name, field_t fields[const], const int fields_amount) {
     memset(buffer, '\0', BUFFER_LENGTH);    // Clearing buffer
     strncpy(buffer, tuple_name, strlen(tuple_name));
 
@@ -51,6 +45,7 @@ static size_t serialize_data_segment(const char* tuple_name, field_t fields[cons
                     data_segment_size += 1;
                 } else {
                     // TODO invalid data return error
+                    return -1;
                 }
                 break;
             }
@@ -66,6 +61,7 @@ static size_t serialize_data_segment(const char* tuple_name, field_t fields[cons
                     data_segment_size += 1;
                 } else {
                     // TODO invalid data return error
+                    return -1;
                 }
                 break;
             }
@@ -82,11 +78,13 @@ static size_t serialize_data_segment(const char* tuple_name, field_t fields[cons
                     data_segment_size += 1;
                 } else {
                     // TODO invalid data return error
+                    return -1;
                 }
                 break;
             }
             default: {
                 // TODO invalid data return error
+                return -1;
             }
         }
     }
@@ -98,17 +96,17 @@ static size_t serialize_data_segment(const char* tuple_name, field_t fields[cons
 }
 
 
-// returns size of data segment in bytes
-static size_t deserialize_data_segment(const char* tuple_name, field_t fields[const]) {
+// returns size of data segment in bytes, or -1 on error
+static int deserialize_data_segment(const char* tuple_name, field_t fields[const]) {
     // Checking if tuple name is the same as provided by template
     if(strncmp(tuple_name, buffer, strlen(tuple_name)) != 0) {
         // TODO tuple name not equall 
+        return -1;
     }
 
     size_t data_segment_size = 0;   // Checks current position in buffer
     data_segment_size += strlen(tuple_name) + 1;
 
-    // char values_buffer[NUMERIC_LENGTH];
     size_t index = 0;
     while(buffer[data_segment_size] != (char)END_MESSAGE) {
         switch(buffer[data_segment_size]) {
@@ -129,7 +127,12 @@ static size_t deserialize_data_segment(const char* tuple_name, field_t fields[co
                 break;
             }
             case (char)STRING_YES: {
-                fields[index].is_actual = TS_YES;
+                if(fields[index].is_actual == TS_YES) {
+                    free(fields[index].data.string_field);  // freeing memory alocated for old string
+                } else {
+                    fields[index].is_actual = TS_YES;
+                }
+
                 fields[index].type = TS_STRING;
                 data_segment_size++;
                 bool status = init_string(&(fields[index].data.string_field), &(buffer[data_segment_size]), strlen(&(buffer[data_segment_size])) + 1);
@@ -137,12 +140,11 @@ static size_t deserialize_data_segment(const char* tuple_name, field_t fields[co
                 if(status == EXIT_FAILURE) {
                     // TODO handle error of not allocating memory
                 }
-                // memcpy(&fields[index].data.string_field, &(buffer[data_segment_size + 1]), NUMERIC_LENGTH);
-                // how to make memory that will be legit in main still?
                 break;
             }
             default: {
-                // TODO unexpected value - its error                
+                // TODO unexpected value - its error
+                return -1;      
             }
         }
         index++;
@@ -160,12 +162,12 @@ bool init_string(char** const string_field, const char* const string_source, con
     *string_field = malloc(length);  // Assuming char is one byte
     if(!(*string_field)) {
         // TODO error handling, memory not allocated
-        return EXIT_FAILURE;
+        return false;
     }
 
     strncpy(*string_field, string_source, length - 1);
     (*string_field)[length - 1] = (char)END_STRING;
-    return EXIT_SUCCESS;
+    return true;
 }
 
 // Deallocates current string and allocates memory for new string
@@ -173,11 +175,11 @@ bool change_string(char** const string_field, const char* const string_source, c
     *string_field = realloc(*string_field, length);   // It leave current block or deallocate old and allocate new
     if(!(*string_field)) {
         // TODO handle error
-        return EXIT_FAILURE;
+        return false;
     }
 
     strncpy(*string_field, string_source, length);
-    return EXIT_SUCCESS;
+    return true;
 }
 
 // Should always be called at the end of using tuples. It deallocates any strings
@@ -193,9 +195,10 @@ void destroy_tuple(field_t* tuples, const size_t fields_amount) {
 bool ts_out(const char* tuple_name, field_t fields[const], const int fields_amount) {
 
     // iterate over elements and create char[]
-    size_t data_segment_size = serialize_data_segment(tuple_name, fields, fields_amount);
+    int data_segment_size = serialize_data_segment(tuple_name, fields, fields_amount);
     if(data_segment_size < 0) {
         // TODO user provided some invalid data when creating tuple fields
+        return false;
     } else if(data_segment_size == 0) {
         // TODO add error when user tries to send empty tuple
     } else {
@@ -221,10 +224,11 @@ bool ts_out(const char* tuple_name, field_t fields[const], const int fields_amou
 bool ts_inp(const char* tuple_name, field_t fields[], const int fields_amount) {
 
     // Creating char buffer with template
-    size_t template_segment_size = serialize_data_segment(tuple_name, fields, fields_amount);
+    int template_segment_size = serialize_data_segment(tuple_name, fields, fields_amount);
     
     if(template_segment_size < 0) {
         // TODO user provided some invalid data when creating tuple fields
+        return false;
     } else if(template_segment_size == 0) {
         // TODO add error when user tries to send empty tuple
     } else {
@@ -244,31 +248,15 @@ bool ts_inp(const char* tuple_name, field_t fields[], const int fields_amount) {
 
 
     // decode 
-    size_t data_segment_size = deserialize_data_segment(tuple_name, fields);
-
-#ifndef NDEBUG
-    printf("\nDATA SEGMENT SIZE:%lu\n", template_segment_size);
-    for(size_t i = 0;i < fields_amount;i++) {
-        switch(fields[i].type) {
-            case TS_INT: {
-                printf("%d\n", fields[i].data.int_field);
-                break;
-            }
-            case TS_FLOAT: {
-                printf("%g\n", fields[i].data.float_field);
-                break;
-            }
-            case TS_STRING: {
-                printf("%s\n", fields[i].data.string_field);
-                break;
-            }
-            default: {
-
-            }
-        }
+    int data_segment_size = deserialize_data_segment(tuple_name, fields);
+    if(data_segment_size < 0) {
+        // TODO Error during deserialization
+        return false;
+    } else if(data_segment_size == 0) {
+        // TODO received empty tuple
+    } else {
+        
     }
-#endif // NDEBUG
-
 
     return true;
 }
@@ -277,27 +265,53 @@ bool ts_inp(const char* tuple_name, field_t fields[], const int fields_amount) {
 bool ts_rdp(const char* tuple_name, field_t fields[], const int fields_amount) {
 
     // Creating char buffer with template
-    size_t data_segment_size = serialize_data_segment(tuple_name, fields, fields_amount);
-    if(data_segment_size < 0) {
+    size_t template_segment_size = serialize_data_segment(tuple_name, fields, fields_amount);
+    if(template_segment_size < 0) {
         // TODO user provided some invalid data when creating tuple fields
-    } else if(data_segment_size == 0) {
+        return false;
+    } else if(template_segment_size == 0) {
         // TODO add error when user tries to send empty tuple
     } else {
         // TODO everything went correctly
-#ifndef NDEBUG
-        printf("DATA SEGMENT SIZE:%lu\n", data_segment_size);
-        for(size_t i = 0;i < data_segment_size;i++) {
-            printf("%d:%c", (unsigned char)(buffer[i]), buffer[i]);
-            printf("\n");
-        }
-#endif // NDEBUG
     }
 
     // Sending a template by network
 
     // Get buffer of char from network
+    size_t data_segment_size = deserialize_data_segment(tuple_name, fields);
+    if(data_segment_size < 0) {
+        // TODO Error during deserialization
+        return false;
+    } else if(data_segment_size == 0) {
+        // TODO received empty tuple
+    } else {
+        
+    }
 
-    // decode 
 
     return true;
 }
+
+
+// #ifndef NDEBUG
+//     printf("\nDATA SEGMENT SIZE:%lu\n", template_segment_size);
+//     for(size_t i = 0;i < fields_amount;i++) {
+//         switch(fields[i].type) {
+//             case TS_INT: {
+//                 printf("%d\n", fields[i].data.int_field);
+//                 break;
+//             }
+//             case TS_FLOAT: {
+//                 printf("%g\n", fields[i].data.float_field);
+//                 break;
+//             }
+//             case TS_STRING: {
+//                 printf("%s\n", fields[i].data.string_field);
+//                 break;
+//             }
+//             default: {
+
+//             }
+//         }
+//     }
+// #endif // NDEBUG

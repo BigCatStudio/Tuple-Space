@@ -22,7 +22,12 @@ int main(int argc, char* argv[argc + 1]) {
     my_tuple[2].type = TS_FLOAT;
     my_tuple[2].data.float_field = 3.14;
     /* add a tuple to the tuple space */
-    ts_inp("nice_constants", my_tuple, 3); /* ("nice_constants",128,3.14) */
+    bool status = ts_inp("nice_constants", my_tuple, 3); /* ("nice_constants",128,3.14) */
+    if(!status) {
+        fprintf(stderr, "Error while doing inp operation\n");
+    }
+
+    destroy_tuple(my_tuple, 3); // Always call this function if you want use any more tuple
 
     
     // /* make a template */
