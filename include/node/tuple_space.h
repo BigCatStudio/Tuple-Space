@@ -1,10 +1,13 @@
 #ifndef TUPLE_SPACE_H
 #define TUPLE_SPACE_H
 
+
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <features.h>
+#include <endian.h> // for transforming values to big endian (network standard)
 
 // #define NDEBUG   // disables all asserts and clauses with NDEBUG
 #ifndef NDEBUG
@@ -46,8 +49,6 @@ void destroy_tuple(field_t* tuples, const size_t fields_amount);
 bool ts_out(const char* tuple_name, field_t fields[const], const int fields_amount);
 bool ts_inp(const char* tuple_name, field_t fields[], const int fields_amount);
 bool ts_rdp(const char* tuple_name, field_t fields[], const int fields_amount);
-
-
 
 
 #endif  // TUPLE_SPACE_H

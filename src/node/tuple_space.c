@@ -22,7 +22,20 @@ char buffer[BUFFER_LENGTH];
 // TODO add translation to big endian for transmitting through network
 
 
-/* returns size of data segment in bytes, or -1 on error */
+// It take pointer to any value, user has to ensure it will be 4 byte long value
+static inline uint32_t hton(void* value_t) {
+    uint32_t host_value_t;
+    memcpy(&host_value_t, value_t, NUMERIC_LENGTH);
+    return htobe32(host_value_t);
+}
+
+static inline uint32_t ntoh(char value_buffer_t[static NUMERIC_LENGTH]) {
+    uint32_t network_value_t;
+    memcpy(&network_value_t, value_buffer_t, NUMERIC_LENGTH);
+    return be32toh(network_value_t);
+}
+
+// returns size of data segment in bytes, or -1 on error
 static int serialize_data_segment(const char* tuple_name, field_t fields[const], const int fields_amount) {
     memset(buffer, '\0', BUFFER_LENGTH);    // Clearing buffer
     strncpy(buffer, tuple_name, strlen(tuple_name));
@@ -36,7 +49,8 @@ static int serialize_data_segment(const char* tuple_name, field_t fields[const],
             case TS_INT: {
                 if(fields[i].is_actual == TS_YES) {
                     values_buffer[0] = (char)INT_YES;
-                    memcpy(values_buffer + 1, &(fields[i].data.int_field), NUMERIC_LENGTH);
+                    uint32_t network_value = hton(&(fields[i].data.int_field));   // Changing host byte order to network order (Big-Endian)
+                    memcpy(values_buffer + 1, &network_value, NUMERIC_LENGTH);
                     strncpy(buffer + data_segment_size, values_buffer, 5);
                     data_segment_size += NUMERIC_LENGTH + 1;
                 } else if(fields[i].is_actual == TS_NO) {
@@ -52,7 +66,8 @@ static int serialize_data_segment(const char* tuple_name, field_t fields[const],
             case TS_FLOAT: {
                 if(fields[i].is_actual == TS_YES) {
                     values_buffer[0] = (char)FLOAT_YES;
-                    memcpy(values_buffer + 1, &(fields[i].data.float_field), NUMERIC_LENGTH);
+                    uint32_t network_value = hton(&(fields[i].data.float_field));   // Changing host byte order to network order (Big-Endian)
+                    memcpy(values_buffer + 1, &network_value, NUMERIC_LENGTH);
                     strncpy(buffer + data_segment_size, values_buffer, 5);
                     data_segment_size += NUMERIC_LENGTH + 1;
                 } else if(fields[i].is_actual == TS_NO) {
@@ -114,7 +129,8 @@ static int deserialize_data_segment(const char* tuple_name, field_t fields[const
                 fields[index].is_actual = TS_YES;
                 fields[index].type = TS_INT;
                 data_segment_size++;
-                memcpy(&fields[index].data.int_field, &(buffer[data_segment_size]), NUMERIC_LENGTH);
+                uint32_t host_value = ntoh(&(buffer[data_segment_size]));
+                memcpy(&fields[index].data.int_field, &(host_value), NUMERIC_LENGTH);
                 data_segment_size += NUMERIC_LENGTH;
                 break;
             }
@@ -122,7 +138,8 @@ static int deserialize_data_segment(const char* tuple_name, field_t fields[const
                 fields[index].is_actual = TS_YES;
                 fields[index].type = TS_FLOAT;
                 data_segment_size++;
-                memcpy(&fields[index].data.float_field, &(buffer[data_segment_size]), NUMERIC_LENGTH);
+                uint32_t host_value = ntoh(&(buffer[data_segment_size]));
+                memcpy(&fields[index].data.float_field, &(host_value), NUMERIC_LENGTH);
                 data_segment_size += NUMERIC_LENGTH;
                 break;
             }
@@ -204,7 +221,7 @@ bool ts_out(const char* tuple_name, field_t fields[const], const int fields_amou
     } else {
         // TODO everything went correctly
 #ifndef NDEBUG
-        printf("DATA SEGMENT SIZE:%lu\n", data_segment_size);
+        printf("DATA SEGMENT SIZE:%d\n", data_segment_size);
         for(size_t i = 0;i < data_segment_size;i++) {
             printf("%d:%c", (unsigned char)(buffer[i]), buffer[i]);
             printf("\n");
@@ -214,8 +231,6 @@ bool ts_out(const char* tuple_name, field_t fields[const], const int fields_amou
 
     // send via network to server as char[]
     // network module will add ALP, but provide necessary informations for ALP
-
-
 
     return true;
 }
@@ -234,7 +249,7 @@ bool ts_inp(const char* tuple_name, field_t fields[], const int fields_amount) {
     } else {
         // TODO everything went correctly
 #ifndef NDEBUG
-        printf("DATA SEGMENT SIZE:%lu\n", template_segment_size);
+        printf("DATA SEGMENT SIZE:%d\n", template_segment_size);
         for(size_t i = 0;i < template_segment_size;i++) {
             printf("%d:%c", (unsigned char)(buffer[i]), buffer[i]);
             printf("\n");
