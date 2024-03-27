@@ -31,6 +31,41 @@ void initiate_tuples_list(Tuples_List* tuples_list) {
 }
 
 bool remove(Tuples_List* tuples_list, const size_t index) {
+
+    if((index >= tuples_list->tuples_amount) || (index < 0)) {
+        // TODO log error
+        return false;
+    }
+
+    Head_Node* current_tuple = tuples_list->head;
+    if(index == 0) {    // Deleting first element in list
+        free(tuples_list->head->tuple_name);
+        free(tuples_list->head->fields);
+        if(tuples_list->head->next_tuple) { // There are many elements in list
+            tuples_list->head = tuples_list->head->next_tuple;
+        } else {        // There is only head in list
+            tuples_list->head = (void*)0;
+        }
+        free(current_tuple);
+    } else {
+        for(size_t i = 0;i < index - 1;i++) {
+            current_tuple = current_tuple->next_tuple;
+        }
+
+        Head_Node* tuple_to_remove = current_tuple->next_tuple;
+
+        if(tuple_to_remove->next_tuple) {   // Tuple for removal is bewteen tuples
+            current_tuple->next_tuple = tuple_to_remove->next_tuple;
+        } else {    // Tuple for removal is last
+            current_tuple->next_tuple = (void*)0;
+        }
+        free(tuple_to_remove->tuple_name);
+        free(tuple_to_remove->fields);
+        free(tuple_to_remove);
+    }
+
+    tuples_list->tuples_amount--;
+
     return true;
 }
 
@@ -100,3 +135,8 @@ field_t* get(Tuples_List* tuples_list, const size_t index) {
 int find(Tuples_List* tuples_list, char* const tuple_name, const field_t* const tuple, const size_t size) {
 
 }
+
+// int main(int argc, char* argv[argc + 1]) {
+
+//     return 0;
+// }
