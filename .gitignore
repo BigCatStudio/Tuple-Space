@@ -54,4 +54,5 @@ dkms.conf
 # custom
 .vscode/
 .github/
-*user*
+*node_network*
+*server_network*

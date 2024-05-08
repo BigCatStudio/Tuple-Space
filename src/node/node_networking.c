@@ -19,11 +19,9 @@
 #define CLIENT_PORT "9999"     // Server port that it listens
 
 #define SERVER_ADDRESS "127.0.0.1"
-#define SERVER_PORT "9001"
+#define SERVER_PORT "9000"
 
-#define MAX_LINE 1024   // Max size of data in single packet
-#define TIME_SIZE 84    // Size of array for local time 
-#define MAX_BUFF 128
+#define BUFFER_SIZE 1024   // Max size of data in single packet
 
 // Header types
 #define NHELLO "NHELLO"
@@ -70,8 +68,8 @@ int main(int argc, char **argv) {
         printf("Bind succuess\n");
     }
 
-    char message_received[MAX_LINE];  // Variable for server response messages
-    char message_to_send[MAX_LINE];  // Variable for server response messages
+    char message_received[BUFFER_SIZE];  // Variable for server response messages
+    char message_to_send[BUFFER_SIZE];  // Variable for server response messages
     // unsigned char header[7];        // variable to store type of message
 
 
@@ -91,7 +89,7 @@ int main(int argc, char **argv) {
         printf("Host info set\n");
     }
 
-    // snprintf(message_to_send, MAX_BUFF, NHELLO, CLIENT_PORT);
+    // snprintf(message_to_send, BUFFER_SIZE, NHELLO, CLIENT_PORT);
     strncpy(message_to_send, "Test Message", 13);
     pos = sendto(socket_info, message_to_send, strlen(message_to_send), 0, server_net_config->ai_addr, server_net_config->ai_addrlen);
     if(pos < 0) {
@@ -105,7 +103,7 @@ int main(int argc, char **argv) {
     srand(time(NULL));
     for(;;) {
         // Receiveing from client
-        if((pos = recvfrom(socket_info, message_received, MAX_BUFF, 0, (struct sockaddr*) &server_net_info, &server_info_size )) < 0){
+        if((pos = recvfrom(socket_info, message_received, BUFFER_SIZE, 0, (struct sockaddr*) &server_net_info, &server_info_size )) < 0){
             printf("ERROR: %s\n", strerror(errno));
             freeaddrinfo(node_net_config);
             freeaddrinfo(server_net_config);
@@ -119,7 +117,7 @@ int main(int argc, char **argv) {
 
         // printf("Message Received from %s:%d\n       HEADER:    %s\n       MESSAGE:   %s\n\n", inet_ntoa(server_net_info.sin_addr), ntohs(server_net_info.sin_port), header, message);
         // Sending response to client
-        // snprintf(message_to_send, MAX_BUFF, "%s%s%s", SERVER, numbers_as_words[rand() % 10], message);
+        // snprintf(message_to_send, BUFFER_SIZE, "%s%s%s", SERVER, numbers_as_words[rand() % 10], message);
         if((pos = sendto(socket_info, message_to_send, strlen(message_to_send), 0, (const struct sockaddr *) &server_net_info, server_info_size)) < 0) {
             // printf("ERROR: %s\n", strerror(errno), __FILE__, __LINE__);
             // TODO Do something if server did not send hello
