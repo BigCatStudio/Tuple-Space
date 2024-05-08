@@ -201,11 +201,20 @@ int main(int argc, char **argv) {
                 // ALP_message message;
                 // decode_message(&message, packet_buffer, pos);
 
-                printf("\nMessage Received from Client %s :%d\n\tHEADER:\n\t\tMESSAGE:\n%s\n", 
+                printf("\nMessage Received from Client %s :%d\n\t Size:%d\nMessage:", 
                     inet_ntoa(net.client_info.sin_addr), \
                     ntohs(net.client_info.sin_port), \
-                    packet_buffer
+                    pos
                 );
+
+                for(size_t i = 0;i < pos;i++) {
+                    printf("%c", packet_buffer[i]);
+                }
+                printf("\n");
+
+                // for(size_t i = 0;i < pos;i++) {
+                //     printf("%c", packet_buffer[i]);
+                // }
 
                 /*
                 printf("\nMessage Received from Client %s :%d\n\tHEADER:\n\t\toperation type:%d\n\t\tdevice ID:%d\n\t\tfields_amount:%d\n\tMESSAGE:", 

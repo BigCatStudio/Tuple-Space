@@ -1,5 +1,4 @@
 #include "node/tuple_space.h"
-#include "node/node_networking.h"
 
 #define INT_YES 1
 #define INT_NO 2
@@ -15,7 +14,10 @@
 #define BYTE_LENGTH 8
 
 #define BUFFER_LENGTH 1024
+
 char buffer[BUFFER_LENGTH];
+
+
 
 // TODO add checks for null pointers at the beginning of functions
 
@@ -261,7 +263,7 @@ bool ts_inp(const char* tuple_name, field_t fields[], const int fields_amount) {
     // bool status = ts_inp_network(buffer, template_segment_size, &data_segment_size);    
     // status should indicate if tuple was in space or not, data_segment_size should be set by ts_inp_network to indicate size of tuple from server
 
-
+    send_message(INP, fields_amount, buffer, template_segment_size);
 
 
     // decode 

@@ -7,6 +7,9 @@ int main(int argc, char* argv[argc + 1]) {
     // inp - retrieving tuple from space
     // rdp - reading tuple from space
 
+    // Has to be called always beforte any operations on tuples
+    setup_networking();
+
     int nice_power;
     double temp, pi;
     field_t my_tuple[3]; /* an array of fields (name not included) */
@@ -29,6 +32,7 @@ int main(int argc, char* argv[argc + 1]) {
 
     destroy_tuple(my_tuple, 3); // Always call this function if you will not use tuple any more
 
+    clean_networking();     // Always has to be called at the end of the program to properly clean network structures
     
     // /* make a template */
     // my_template[0].is_actual = TS_NO;

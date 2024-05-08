@@ -56,3 +56,4 @@ dkms.conf
 .github/
 *node_network*
 *server_network*
+*user*

@@ -16,6 +16,8 @@
 
 #include <assert.h>
 
+#include "node/node_networking.h"
+
 #define TS_YES 1
 #define TS_NO 0
 #define TS_INT 0
@@ -34,9 +36,10 @@ typedef struct {
     } data;
 } field_t; /* a new type corresponding to one field of a tuple */
 
+
+
 /* API */
 // TODO MOVE ALL COMMENTS ABOU WHAT FUNCTIONS DO FROM .C FILE TO THIS .H FILE
-
 bool init_string(char** const string_field, const char* const string_source, const size_t length);
 bool change_string(char** const string_field, const char* const string_source, const size_t length);
 void destroy_tuple(field_t* tuples, const size_t fields_amount);
