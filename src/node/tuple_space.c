@@ -1,5 +1,5 @@
 #include "node/tuple_space.h"
-
+#include "node/node_networking.h"
 
 #define INT_YES 1
 #define INT_NO 2
@@ -260,6 +260,8 @@ bool ts_inp(const char* tuple_name, field_t fields[], const int fields_amount) {
     // Sending a template by network - return char array should be written in provided buffer
     // bool status = ts_inp_network(buffer, template_segment_size, &data_segment_size);    
     // status should indicate if tuple was in space or not, data_segment_size should be set by ts_inp_network to indicate size of tuple from server
+
+
 
 
     // decode 
