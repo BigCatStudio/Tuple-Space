@@ -21,6 +21,7 @@ char buffer[BUFFER_LENGTH];
 
 // TODO add translation to big endian for transmitting through network
 
+// TODO all int uses should be changed to uint32_t
 
 // It take pointer to any value, user has to ensure it will be 4 byte long value
 static inline uint32_t hton(void* value_t) {
@@ -66,7 +67,7 @@ static int serialize_data_segment(const char* tuple_name, field_t fields[const],
             case TS_FLOAT: {
                 if(fields[i].is_actual == TS_YES) {
                     values_buffer[0] = (char)FLOAT_YES;
-                    uint32_t network_value = hton(&(fields[i].data.float_field));   // Changing host byte order to network order (Big-Endian)
+                    uint32_t network_value = hton(&(fields[i].data.float_field));   // Float is same size as int so its bits are interpreted same as if it was int when sending to server
                     memcpy(values_buffer + 1, &network_value, NUMERIC_LENGTH);
                     strncpy(buffer + data_segment_size, values_buffer, 5);
                     data_segment_size += NUMERIC_LENGTH + 1;
@@ -223,8 +224,7 @@ bool ts_out(const char* tuple_name, field_t fields[const], const int fields_amou
 #ifndef NDEBUG
         printf("DATA SEGMENT SIZE:%d\n", data_segment_size);
         for(size_t i = 0;i < data_segment_size;i++) {
-            printf("%d:%c", (unsigned char)(buffer[i]), buffer[i]);
-            printf("\n");
+            printf("%d:%c\n", (unsigned char)(buffer[i]), buffer[i]);
         }
 #endif // NDEBUG
     }
@@ -249,7 +249,7 @@ bool ts_inp(const char* tuple_name, field_t fields[], const int fields_amount) {
     } else {
         // TODO everything went correctly
 #ifndef NDEBUG
-        printf("DATA SEGMENT SIZE:%d\n", template_segment_size);
+        printf("TEMPLATE SEGMENT SIZE:%d\n", template_segment_size);
         for(size_t i = 0;i < template_segment_size;i++) {
             printf("%d:%c", (unsigned char)(buffer[i]), buffer[i]);
             printf("\n");
@@ -270,7 +270,28 @@ bool ts_inp(const char* tuple_name, field_t fields[], const int fields_amount) {
     } else if(data_segment_size == 0) {
         // TODO received empty tuple
     } else {
-        
+#ifndef NDEBUG
+        printf("\nDATA SEGMENT SIZE:%d\n", data_segment_size);
+        for(size_t i = 0;i < fields_amount;i++) {
+            switch(fields[i].type) {
+                case TS_INT: {
+                    printf("%d\n", fields[i].data.int_field);
+                    break;
+                }
+                case TS_FLOAT: {
+                    printf("%g\n", fields[i].data.float_field);
+                    break;
+                }
+                case TS_STRING: {
+                    printf("%s\n", fields[i].data.string_field);
+                    break;
+                }
+                default: {
+                    // TODO manage error
+                }
+            }
+        }
+#endif // NDEBUG
     }
 
     return true;

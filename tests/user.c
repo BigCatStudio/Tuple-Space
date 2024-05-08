@@ -27,7 +27,7 @@ int main(int argc, char* argv[argc + 1]) {
         fprintf(stderr, "Error while doing inp operation\n");
     }
 
-    destroy_tuple(my_tuple, 3); // Always call this function if you want use any more tuple
+    destroy_tuple(my_tuple, 3); // Always call this function if you will not use tuple any more
 
     
     // /* make a template */
