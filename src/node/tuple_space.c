@@ -327,27 +327,3 @@ bool ts_rdp(const char* tuple_name, field_t fields[], const int fields_amount) {
 
     return true;
 }
-
-
-// #ifndef NDEBUG
-//     printf("\nDATA SEGMENT SIZE:%lu\n", template_segment_size);
-//     for(size_t i = 0;i < fields_amount;i++) {
-//         switch(fields[i].type) {
-//             case TS_INT: {
-//                 printf("%d\n", fields[i].data.int_field);
-//                 break;
-//             }
-//             case TS_FLOAT: {
-//                 printf("%g\n", fields[i].data.float_field);
-//                 break;
-//             }
-//             case TS_STRING: {
-//                 printf("%s\n", fields[i].data.string_field);
-//                 break;
-//             }
-//             default: {
-
-//             }
-//         }
-//     }
-// #endif // NDEBUG
