@@ -1,6 +1,9 @@
 #ifndef TUPLE_SPACE_STORAGE_H
 #define TUPLE_SPACE_STORAGE_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
 
 #define INT_YES 1
 #define INT_NO 2
@@ -20,8 +23,8 @@
 // Head node will have pointers to heads of list of tuples with same fields_amount
 
 typedef struct {
-    node* next  // Next tuple of same fields amount
-    // TODO char* for whole tuple or deserialized data -> which faster?
+    struct node* next;  // Next tuple of same fields amount
+    char* tuple;
 } node;
 
 typedef struct {
@@ -31,8 +34,31 @@ typedef struct {
 
 typedef struct {
     tuples_list** list;    // Contains list of nodes where each node is head of list with same fields amount
-} tuples_storage;
+} tuple_space;
 
+
+bool add_element(const char* restrict const tuple, uint8_t fields_amount, size_t size) {
+    // Check if head was created, create if not
+    
+    // Add element
+
+    return true;
+}
+
+bool remove_element() {
+
+    return true;
+}
+
+bool find_element() {
+
+    return true;
+}
+
+bool get_element() {
+
+    return true;
+}
 
 
 
