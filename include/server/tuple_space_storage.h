@@ -38,7 +38,9 @@ typedef struct {
 
 
 bool add_element(const char* restrict const tuple, uint8_t fields_amount, size_t size) {
-    // Check if head was created, create if not
+    // Check if there are tuples of given fields amount in list
+
+    
     
     // Add element
 
