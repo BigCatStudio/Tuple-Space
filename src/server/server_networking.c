@@ -1,51 +1,9 @@
 #include "server/server_networking.h"
 
-#include <netdb.h>
-#include <errno.h>
-#include <arpa/inet.h>
-#include <netinet/in.h> // Definition of INET_ADDRSTRLEN (IP address)
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdint.h>
-#include <time.h> // To get local time
-#include <sys/time.h>   // To add prototype of gettimeofday(...) function
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <sys/select.h>
-
-
-#define SERVER_PORT "9000"     // Server port that it listens
-#define PACKET_BUFFER_LENGTH 1024
-#define HEADER_LENGTH 2
-#define TIME_SIZE 84
-
-// Header types
-#define INP 1
-#define RDP 2
-#define OUT 3
-#define HELLO 4
-#define ACK 5
-
-unsigned char packet_buffer[PACKET_BUFFER_LENGTH];
+char packet_buffer[PACKET_BUFFER_LENGTH];
 uint8_t device_id = 97;
 
-typedef struct {    // Contains server networing details: socket, addresses etc
-    struct addrinfo h;
-    struct addrinfo* r;
-    struct sockaddr_in client_info;
-    int socket;
-    socklen_t c_len;
-} networking_stack;
-
-typedef struct {
-    uint8_t operation_type : 3;
-    uint8_t device_id : 7;
-    uint8_t fields_amount : 6;
-    char tuple[PACKET_BUFFER_LENGTH - HEADER_LENGTH];
-} ALP_message;
+// TODO change size data type to size_t
 
 void decode_message(ALP_message* message_decoded, char* message_coded, uint32_t size) {
     // Header
@@ -59,10 +17,12 @@ void decode_message(ALP_message* message_decoded, char* message_coded, uint32_t 
 
     // Tuple fields
     memset(message_decoded->tuple, '\0', PACKET_BUFFER_LENGTH - HEADER_LENGTH);
+    //printf("Decoded message\n");
     for(uint32_t i = 2;i < size;i++) {
         message_decoded->tuple[i - 2] = message_coded[i];
-        // printf("%d:%c\n", i, message_decoded->tuple[i - 2]);
+        //printf("%d:%c\n", i, message_decoded->tuple[i - 2]);
     }
+    //printf("\n");
     //strncpy(message_decoded->tuple, message_coded + HEADER_LENGTH, PACKET_BUFFER_LENGTH - HEADER_LENGTH);
 }
 
@@ -106,19 +66,15 @@ void setup_networking(networking_stack* net) {
     }
 }
 
-uint8_t create_header(char* header, uint8_t operation_type, uint8_t fields_amount) {
-    if(operation_type < 1 || operation_type > 5) {
-        return 0;
+bool create_header(char* header, uint8_t operation_type, uint8_t fields_amount) {
+    // TODO make operation_type global enup and check if provided value is in enum
+    if(operation_type < INP || operation_type > ACK) {
+        return false;
     } 
 
-    if(fields_amount > 63 || fields_amount < 0) {
-        return 0;
-    } 
-
-    // operation_type  3 bits
-    // device_id       7 bits
-    // fields_amount   6 bits
-    // |xxx|xxxxxxx|xxxxxx| = uint16_t
+    if(fields_amount > FIELDS_MAX || fields_amount < 0) {
+        return false;
+    }
 
     uint16_t header_int = 0x0000;
 
@@ -129,7 +85,7 @@ uint8_t create_header(char* header, uint8_t operation_type, uint8_t fields_amoun
     header[0] = (header_int >> 8) & 0xFF;
     header[1] = (header_int) & 0xFF;
     
-    return 1;
+    return true;
 }
 
 void send_message(networking_stack* net, uint8_t operation_type, uint8_t fields_amount, char* tuple, uint32_t size) {
@@ -197,10 +153,6 @@ int main(int argc, char **argv) {
                 }
                 packet_buffer[pos] = '\0';
 
-                // Header
-                // ALP_message message;
-                // decode_message(&message, packet_buffer, pos);
-
                 printf("\nMessage Received from Client %s :%d\n\t Size:%d\nMessage:", 
                     inet_ntoa(net.client_info.sin_addr), \
                     ntohs(net.client_info.sin_port), \
@@ -212,9 +164,9 @@ int main(int argc, char **argv) {
                 }
                 printf("\n");
 
-                // for(size_t i = 0;i < pos;i++) {
-                //     printf("%c", packet_buffer[i]);
-                // }
+                ALP_message message;
+                decode_message(&message, packet_buffer, pos);
+
 
                 /*
                 printf("\nMessage Received from Client %s :%d\n\tHEADER:\n\t\toperation type:%d\n\t\tdevice ID:%d\n\t\tfields_amount:%d\n\tMESSAGE:", 
@@ -224,11 +176,6 @@ int main(int argc, char **argv) {
                     message.device_id, \
                     message.fields_amount
                 ); */
-
-                // for(int i = 0;i < pos - 2;i++) {
-                //     printf("%c", message.tuple[i]);
-                // }
-                // printf("\n");
 
                 // if(message.operation_type == INP) {
                 //     uint32_t size = server_inp(message.fields_amount, message.tuple);

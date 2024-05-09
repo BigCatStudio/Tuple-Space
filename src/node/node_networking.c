@@ -147,13 +147,14 @@ void send_message(uint8_t operation_type, uint8_t fields_amount, char* buffer, u
         }
     }
 
-    // TODO Sending packet
     net.pos = sendto(net.socket_info, packet_buffer, size + HEADER_LENGTH, 0, net.server_net_config->ai_addr, net.server_net_config->ai_addrlen);
     if(net.pos < 0) {
         // printf("ERROR: %s\n", strerror(errno), __FILE__, __LINE__);
     } else if(net.pos > 0) {
         printf("Succesfully sent %d bytes\n", net.pos);
     }
+
+    // TODO Wait for packet with tuple from server 
 }
 
 
