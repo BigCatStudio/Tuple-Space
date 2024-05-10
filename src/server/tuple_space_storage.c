@@ -1,7 +1,11 @@
 #include "server/tuple_space_storage.h"
 
 int main() {
-    
+    tuple_space ts;
+    ts.lists = NULL;
+    ts.lists_amount = 0;
+
+
     return 0;
 }
 
