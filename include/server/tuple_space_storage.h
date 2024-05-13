@@ -53,8 +53,11 @@ typedef struct {
 // char* tuple
 
 
+// TODO add checking for types returned by all functions defined here
+
+
 // Returns index if found and -1 if not found
-int32_t find_list(tuple_space* ts, const size_t fields_amount) {
+static int32_t find_list(tuple_space* ts, const size_t fields_amount) {
     for(size_t i = 0;i < ts->lists_amount;i++) {
         if(ts->lists[i].fields_amount == fields_amount) {
             return i;
@@ -85,25 +88,22 @@ static node* allocate_new_tuple(const char* const tuple, const size_t size) {
     }
 
     for(size_t i = 0;i < size;i++) {
-        current->tuple[i] = tuple[i];  
-        // memcpy(current->tuple, tuple, size); // TODO why memcpy does not work?
+        // current->tuple[i] = tuple[i];  
+        memcpy(current->tuple, tuple, size); // TODO why memcpy does not work?
     }
 
     return current;
 }
 
-// Deallocates memory where tuple was stored
-static bool deallocate_tuple() {
-
-    return true;
-}
-
 // Compares given C-string with tuples in tuple_space based on provided template
-bool compare_tuples(const char* const tuple_1, const char* const tuple_2, size_t size) {
+static bool compare_tuples(const char* const tuple_1, const char* const tuple_2, size_t size) {
     if(strncmp(tuple_1, tuple_2, size) == 0) {
         return true;
     }
     return false;
+
+
+
 }
 
 // Returns pointer to tuple in specified list
@@ -154,7 +154,7 @@ bool add_tuple(tuple_space* ts, const char* restrict const tuple, const uint8_t 
 
     if(index == -1) {   // Creating new list
         if(ts->capacity == ts->lists_amount) {   // There is not memory for new list
-            tuple_list* new_lists = realloc(ts->lists, ts->capacity + ALLOCATION_AMOUNT);   // Allocating new memory increased by arbitrarly value
+            tuple_list* new_lists = realloc(ts->lists, sizeof(tuple_list) * (ts->capacity + ALLOCATION_AMOUNT));   // Allocating new memory increased by arbitrarly value
             if(new_lists == NULL) {
                 // Memory allocation failed
                 // TODO handle error
@@ -237,11 +237,13 @@ void display_tuple_space(tuple_space* ts) {
             printf("\tList is empty\n");
         } else {
             do {
+                printf("\tSize:%lu\n", current->size);
                 printf("\t");
                 for(size_t i = 0;i < current->size;i++) {
+                    // printf("%lu:%c\n", i, current->tuple[i]);
                     printf("%c", current->tuple[i]);
                 }
-                printf("\n");
+
                 current = current->next;
             } while(current != NULL);
         }
