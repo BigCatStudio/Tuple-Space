@@ -1,24 +1,5 @@
 #include "node/node_networking.h"
 
-
-#define CLIENT_ADDRESS "127.0.0.1"
-#define CLIENT_PORT "9999"     // Server port that it listens
-
-#define SERVER_ADDRESS "127.0.0.1"
-#define SERVER_PORT "9000"
-
-#define PACKET_BUFFER_LENGTH 1024   // Max size of data in single packet
-#define FIELDS_MAX 63
-
-// Header types
-#define INP 1
-#define RDP 2
-#define OUT 3
-#define HELLO 4
-#define ACK 5
-
-#define HEADER_LENGTH 2
-
 char packet_buffer[PACKET_BUFFER_LENGTH];
 uint8_t device_id = 113;
 

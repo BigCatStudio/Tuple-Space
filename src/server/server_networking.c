@@ -123,7 +123,10 @@ void send_message(networking_stack* net, uint8_t operation_type, uint8_t fields_
 int main(int argc, char **argv) {
     networking_stack net;
     setup_networking(&net);
-    // initialize_meta_tuple_space();
+    
+    // Creating tuple space structure
+    tuple_space ts;
+    ts.lists = NULL;
 
     // Defineing variables to make sure client won't stop on blocking function
     fd_set readfds;     
@@ -143,7 +146,7 @@ int main(int argc, char **argv) {
             if(FD_ISSET(net.socket, &readfds)) {
                 memset(packet_buffer, 0, sizeof(packet_buffer)); // Clearing buffer
 
-                uint32_t pos = recvfrom(net.socket, packet_buffer, PACKET_BUFFER_LENGTH, 0, (struct sockaddr*) &(net.client_info), &(net.c_len));
+                size_t pos = recvfrom(net.socket, packet_buffer, PACKET_BUFFER_LENGTH, 0, (struct sockaddr*) &(net.client_info), &(net.c_len));
 
                 if(pos < 0) {
                     printf("ERROR: %s\n", strerror(errno));
@@ -153,10 +156,16 @@ int main(int argc, char **argv) {
                 }
                 packet_buffer[pos] = '\0';
 
-                printf("\nMessage Received from Client %s :%d\n\t Size:%d\nMessage:", 
+                ALP_message message;
+                decode_message(&message, packet_buffer, pos);
+                
+                printf("\nMessage Received from Client %s:%d\n\tSIZE:%lu\n\tHEADER:\n\t\toperation type:%d\n\t\tdevice ID:%d\n\t\tfields_amount:%d\n\tMESSAGE:", 
                     inet_ntoa(net.client_info.sin_addr), \
                     ntohs(net.client_info.sin_port), \
-                    pos
+                    pos, \
+                    message.operation_type, \
+                    message.device_id, \
+                    message.fields_amount
                 );
 
                 for(size_t i = 0;i < pos;i++) {
@@ -164,40 +173,34 @@ int main(int argc, char **argv) {
                 }
                 printf("\n");
 
-                ALP_message message;
-                decode_message(&message, packet_buffer, pos);
 
+                if(message.operation_type == INP) {
+                    if(add_tuple(&ts, message.tuple, message.fields_amount, pos - HEADER_LENGTH)) {
+                        // send_message(&net, ACK, message.fields_amount, message.tuple, size);
+                    } else {
+                        // send_message(&net, ACK, 0, NULL, 0);
+                    }
+                } else if(message.operation_type == RDP) {
+                    char* tuple = get_tuple(&ts, message.tuple, message.fields_amount, pos - HEADER_LENGTH);
+                    if(tuple != NULL) {
+                        // send_message(&net, ACK, message.fields_amount, message.tuple, size);
+                    } else {
+                        // send_message(&net, ACK, 0, NULL, 0);
+                    }
+                } else if(message.operation_type == OUT) {
+                    char* tuple = get_tuple(&ts, message.tuple, message.fields_amount, pos - HEADER_LENGTH);
+                    if(tuple != NULL) {      // Sending ACK only if tuple was correctly added
+                        if(!remove_tuple(&ts, message.tuple, message.fields_amount, pos - HEADER_LENGTH)) {
+                            // TODO log error
+                            // Tuple found eariler but could not be deleted from tuple space
+                        }
+                        // send_message(&net, ACK, 0, NULL, 0);
+                    }
+                } else if(message.operation_type == HELLO) {
+                    // send_message(&net, ACK, 0, NULL, 0);
+                }
 
-                /*
-                printf("\nMessage Received from Client %s :%d\n\tHEADER:\n\t\toperation type:%d\n\t\tdevice ID:%d\n\t\tfields_amount:%d\n\tMESSAGE:", 
-                    inet_ntoa(net.client_info.sin_addr), \
-                    ntohs(net.client_info.sin_port), \
-                    message.operation_type, \
-                    message.device_id, \
-                    message.fields_amount
-                ); */
-
-                // if(message.operation_type == INP) {
-                //     uint32_t size = server_inp(message.fields_amount, message.tuple);
-                //     if(size > 0) {
-                //         send_message(&net, ACK, message.fields_amount, message.tuple, size);
-                //     } else {
-                //         send_message(&net, ACK, 0, NULL, 0);
-                //     }
-                // } else if(message.operation_type == RDP) {
-                //     uint32_t size = server_rdp(message.fields_amount, message.tuple);
-                //     if(size > 0) {
-                //         send_message(&net, ACK, message.fields_amount, message.tuple, size);
-                //     } else {
-                //         send_message(&net, ACK, 0, NULL, 0);
-                //     }
-                // } else if(message.operation_type == OUT) {
-                //     if(server_out(message.fields_amount, message.tuple, pos - 2)) {      // Sending ACK only if tuple was correctly added
-                //         send_message(&net, ACK, 0, NULL, 0);
-                //     }
-                // } else if(message.operation_type == HELLO) {
-                //     send_message(&net, ACK, 0, NULL, 0);
-                // }
+                display_tuple_space(&ts);   // TODO remove from prod
             }
         }
     }

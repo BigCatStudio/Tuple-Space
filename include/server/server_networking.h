@@ -19,14 +19,15 @@
 #include <sys/wait.h>
 #include <sys/select.h>
 
+#include "tuple_space_storage.h"
+
 
 #define SERVER_PORT "9000"     // Server port that it listens
 #define PACKET_BUFFER_LENGTH 1024
 #define HEADER_LENGTH 2
-#define TIME_SIZE 84
 #define FIELDS_MAX 63
 
-// Header types
+// Network header types
 #define INP 1
 #define RDP 2
 #define OUT 3

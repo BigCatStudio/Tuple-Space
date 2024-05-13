@@ -18,6 +18,7 @@
 
 #include "node/node_networking.h"
 
+// API headers for operation on tuple space
 #define TS_YES 1
 #define TS_NO 0
 #define TS_INT 0

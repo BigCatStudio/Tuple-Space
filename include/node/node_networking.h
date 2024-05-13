@@ -27,9 +27,7 @@
 #define PACKET_BUFFER_LENGTH 1024   // Max size of data in single packet
 #define FIELDS_MAX 63
 
-
-
-// Header types
+// Network header types
 #define INP 1
 #define RDP 2
 #define OUT 3
@@ -37,6 +35,7 @@
 #define ACK 5
 
 #define HEADER_LENGTH 2
+
 
 
 typedef struct {
