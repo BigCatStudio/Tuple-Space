@@ -26,21 +26,31 @@
 // Use head node as starting point
 // Head node will have pointers to heads of list of tuples with same fields_amount
 
+// Contains pointer *next to next tuple in list and tuple
 typedef struct node {
     struct node* next;  // Next tuple of same fields amount
     char* tuple;
+    size_t size;
 } node;
 
+// Contains pointer *head to the beginning of list and amount of fields for list
 typedef struct {
     size_t fields_amount;
     node* head;
 } tuple_list;
 
+// Contains pointers to lists, and capacity of how many lists it can currently contain in memory
 typedef struct {
     size_t capacity;        // How many lists can hold current tuple_space
     size_t lists_amount;    // Current amount of valid lists 
     tuple_list* lists;      // Contains list of nodes where each node is head of list with same fields amount
 } tuple_space;
+
+
+// Dynamic allocation:
+// tuple_list* lists
+// node* head, node* next
+// char* tuple
 
 
 // Returns index if found and -1 if not found
@@ -54,8 +64,73 @@ int32_t find_list(tuple_space* ts, const size_t fields_amount) {
     return -1;
 }
 
+// TODO resize method for chaning size of tuple_space
+
+// Allocates memory for new tuple and its contents
+static node* allocate_new_tuple(const char* const tuple, const size_t size) {
+    node* current = malloc(sizeof(node));    // Allocating memory for list head
+    if(current == NULL) {
+        // Memory allocation failed
+        // TODO handle error
+        return NULL;
+    }
+
+    current->next = NULL;
+    current->size = size;
+    current->tuple = malloc(size * sizeof(char)); // Allocating memory for tuple in char* format
+    if(current->tuple == NULL) {
+        // Memory allocation failed
+        // TODO handle error
+        return NULL;
+    }
+
+    for(size_t i = 0;i < size;i++) {
+        current->tuple[i] = tuple[i];  
+        // memcpy(current->tuple, tuple, size); // TODO why memcpy does not work?
+    }
+
+    return current;
+}
+
+// Deallocates memory where tuple was stored
+static bool deallocate_tuple() {
+
+    return true;
+}
+
+// Compares given C-string with tuples in tuple_space based on provided template
+bool compare_tuples(const char* const tuple_1, const char* const tuple_2, size_t size) {
+    if(strncmp(tuple_1, tuple_2, size) == 0) {
+        return true;
+    }
+    return false;
+}
+
+// Returns pointer to tuple in specified list
+char* get_tuple(tuple_space* ts, char* tuple, const uint8_t fields_amount, size_t size) {
+    size_t index = find_list(ts, fields_amount);
+    if(index == -1) {
+        return NULL;
+    }
+
+    node* current = ts->lists[index].head;
+    if(current == NULL) {
+        return NULL;
+    }
+
+    do {
+        if(compare_tuples(current->tuple, tuple, size)) {
+            return current->tuple;
+        }
+        current = current->next;
+    } while(current != NULL);
+
+    return NULL;
+}
+
+
 // Adds tuple to tuple_space
-bool add_element(tuple_space* ts, const char* restrict const tuple, const uint8_t fields_amount, const size_t size) {
+bool add_tuple(tuple_space* ts, const char* restrict const tuple, const uint8_t fields_amount, const size_t size) {
     // Check if it is used for the first time
     if(ts->lists == NULL) {
         ts->lists = malloc(sizeof(tuple_list) * ALLOCATION_AMOUNT);     // Arbitrarily allocating memory for 10 lists of different fields amount to prevent to much allocating
@@ -76,6 +151,7 @@ bool add_element(tuple_space* ts, const char* restrict const tuple, const uint8_
 
     // Checking if given fields_amount has list
     int32_t index = find_list(ts, fields_amount);
+
     if(index == -1) {   // Creating new list
         if(ts->capacity == ts->lists_amount) {   // There is not memory for new list
             tuple_list* new_lists = realloc(ts->lists, ts->capacity + ALLOCATION_AMOUNT);   // Allocating new memory increased by arbitrarly value
@@ -88,68 +164,91 @@ bool add_element(tuple_space* ts, const char* restrict const tuple, const uint8_
             ts->capacity += ALLOCATION_AMOUNT;
         }
 
-        ts->lists[ts->lists_amount].head = malloc(sizeof(node));    // Allocating memory for list head
-        if(ts->lists[ts->lists_amount].head == NULL) {
-            // Memory allocation failed
-            // TODO handle error
-        }
-
-        node* head = ts->lists[ts->lists_amount].head;
-        head->next = NULL;
-        head->tuple = malloc(size * sizeof(char)); // Allocating memory for tuple in char* format
-        if(head->tuple == NULL) {
-            // Memory allocation failed
-            // TODO handle error
-        }
-
-        for(size_t i = 0;i < size;i++) {
-            head->tuple[i] = tuple[i];  
-            // memcpy(head->tuple, tuple, size); // TODO why memcpy does not work?
-        }
-
-
-
+        ts->lists[ts->lists_amount].head = allocate_new_tuple(tuple, size);
         ts->lists[ts->lists_amount].fields_amount = fields_amount;
         ts->lists_amount++;
 
     } else {    // Adding tuple to existing list
-        node* head = ts->lists[index].head;
-        if(head == NULL) {
-            // TODO handle some error
-        }
+        node* current = ts->lists[index].head; // First tuple in list
 
-        while(head->next != NULL) {
-            head = head->next;  // TODO WHAT???
+        if(current == NULL) {   // There are not elements in list
+            ts->lists[index].head = allocate_new_tuple(tuple, size);
+        } else {    // Head exists in list
+            while(current->next != NULL) {
+                current = current->next;
+            }
+
+            current->next = allocate_new_tuple(tuple, size);
         }
     }
 
     return true;
 }
 
+// Returns true if tuple was removed and false if tuple was not found
+bool remove_tuple(tuple_space* ts, const char* const tuple, const uint8_t fields_amount, const size_t size) {
+    size_t index = find_list(ts, fields_amount);
 
-bool remove_element() {
+    if(index == -1) {
+        return false;
+    }
 
-    return true;
+    node* current = ts->lists[index].head;
+
+    if(current == NULL) {
+        return false;
+    }
+
+    if(compare_tuples(current->tuple, tuple, size)) {   // Checking if head matches tuple
+        ts->lists[index].head = current->next;  // NULL or next tuple
+        free(current->tuple);
+        free(current);
+        return true;
+    }
+
+    // TODO check if there are any tuples in list, if not remove list from tuple_space
+
+    while(current->next != NULL) {  // Checking rest of tuples if they exist
+        if(compare_tuples(current->next->tuple, tuple, size)) {
+            node* next = current->next->next;   // NULL or next tuple
+            free(current->next->tuple);
+            free(current->next);
+            current->next = next;
+            return true;
+        }
+        current = current->next;
+    }
+
+    return false;
 }
 
-bool find_element() {
+// For debugging purpouses, displayes whole tuple_space
+void display_tuple_space(tuple_space* ts) {
+    printf("\nCapacity:%lu\n", ts->capacity);
+    printf("Lists amount:%lu\n\n", ts->lists_amount);
 
-    return true;
+    for(size_t i = 0;i < ts->lists_amount;i++) {
+        printf("\tList[%lu]\n", i);
+        printf("\tFields amount:%lu\n", ts->lists[i].fields_amount);
+
+        node* current = ts->lists[i].head;
+
+        if(current == NULL) {
+            printf("\tList is empty\n");
+        } else {
+            do {
+                printf("\t");
+                for(size_t i = 0;i < current->size;i++) {
+                    printf("%c", current->tuple[i]);
+                }
+                printf("\n");
+                current = current->next;
+            } while(current != NULL);
+        }
+
+        printf("\n");
+    }
 }
-
-bool get_element() {
-
-    return true;
-}
-
-
-
-
-void server_inp();
-
-void server_out();
-
-void server_rdp();
 
 
 #endif  // TUPLE_SPACE_STORAGE_H

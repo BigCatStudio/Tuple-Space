@@ -3,23 +3,25 @@
 int main() {
     tuple_space ts;
     ts.lists = NULL;
-    ts.lists_amount = 0;
+    
+    add_tuple(&ts, "To jest tuple 1", 2, 16);
+    add_tuple(&ts, "To jest tuple 2", 5, 16);
+    add_tuple(&ts, "To jest tuple 3", 1, 16);
+    add_tuple(&ts, "To jest tuple 4", 2, 16);
+    add_tuple(&ts, "To jest tuple 5", 5, 16);
+    add_tuple(&ts, "To jest tuple 6", 2, 16);
+    add_tuple(&ts, "To jest tuple 7", 1, 16);
+    add_tuple(&ts, "To jest tuple 8", 2, 16);
+    add_tuple(&ts, "To jest tuple 9", 2, 16);
+    add_tuple(&ts, "To jest tuple 10", 2, 17);
 
+    display_tuple_space(&ts);
+
+    remove_tuple(&ts, "To jest tuple 8", 2, 16);
+    remove_tuple(&ts, "To jest tuple 1", 2, 16);
+    remove_tuple(&ts, "To jest tuple 10", 2, 17);
+
+    display_tuple_space(&ts);
 
     return 0;
 }
-
-
-// typedef struct {
-//     struct node* next;  // Next tuple of same fields amount
-//     // TODO char* for whole tuple or deserialized data -> which faster?
-// } node;
-
-// typedef struct {
-//     size_t fields_amount;
-//     node* next;
-// } tuples_list;
-
-// typedef struct {
-//     tuples_list** list;    // Contains list of nodes where each node is head of list with same fields amount
-// } tuples_storage;
