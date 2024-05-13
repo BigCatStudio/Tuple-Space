@@ -106,6 +106,33 @@ static bool compare_tuples(const char* const tuple_1, const char* const tuple_2,
 
 }
 
+void check_empty_list(tuple_space* ts, size_t index) {
+    if(ts->lists[index].head == NULL) { // Check if list is empty
+        if(ts->lists_amount == 1) {    // only one list
+            ts->lists[index].fields_amount = 0;
+        } else if(index == ts->lists_amount - 1) { // last list
+            ts->lists[index].fields_amount = 0;
+        } else {    // middle list
+            ts->lists[index] = ts->lists[ts->lists_amount - 1]; // middle list
+            ts->lists[ts->lists_amount - 1].head = NULL;
+            ts->lists[ts->lists_amount - 1].fields_amount = 0;
+        }
+
+        ts->lists_amount--;
+
+        if(ts->lists_amount < ts->capacity - ALLOCATION_AMOUNT) {   // Freeing memory if there is too big capacity for lists amount
+            tuple_list* new_lists = realloc(ts->lists, sizeof(tuple_list) * (ts->capacity - ALLOCATION_AMOUNT));   // Deallocating unused memory
+            if(new_lists == NULL) {
+                // Memory allocation failed
+                // TODO handle error
+            }
+
+            ts->lists = new_lists;  // TODO check if all content has been correctly copied to new location
+            ts->capacity -= ALLOCATION_AMOUNT;
+        }
+    }
+}
+
 // Returns pointer to tuple in specified list
 char* get_tuple(tuple_space* ts, char* tuple, const uint8_t fields_amount, size_t size) {
     size_t index = find_list(ts, fields_amount);
@@ -195,20 +222,17 @@ bool remove_tuple(tuple_space* ts, const char* const tuple, const uint8_t fields
 
     node* current = ts->lists[index].head;
 
-    if(current == NULL) {
-        return false;
-    }
-
     if(compare_tuples(current->tuple, tuple, size)) {   // Checking if head matches tuple
         ts->lists[index].head = current->next;  // NULL or next tuple
         free(current->tuple);
         free(current);
+        
+        check_empty_list(ts, index);
+
         return true;
     }
 
-    // TODO check if there are any tuples in list, if not remove list from tuple_space
-
-    while(current->next != NULL) {  // Checking rest of tuples if they exist
+    while(current->next != NULL) {  // Checking rest of tuples
         if(compare_tuples(current->next->tuple, tuple, size)) {
             node* next = current->next->next;   // NULL or next tuple
             free(current->next->tuple);
@@ -228,8 +252,8 @@ void display_tuple_space(tuple_space* ts) {
     printf("Lists amount:%lu\n\n", ts->lists_amount);
 
     for(size_t i = 0;i < ts->lists_amount;i++) {
-        printf("\tList[%lu]\n", i);
-        printf("\tFields amount:%lu\n", ts->lists[i].fields_amount);
+        printf("\tList[%lu] | ", i);
+        printf("Fields amount:%lu\n", ts->lists[i].fields_amount);
 
         node* current = ts->lists[i].head;
 
@@ -237,13 +261,12 @@ void display_tuple_space(tuple_space* ts) {
             printf("\tList is empty\n");
         } else {
             do {
-                printf("\tSize:%lu\n", current->size);
                 printf("\t");
                 for(size_t i = 0;i < current->size;i++) {
                     // printf("%lu:%c\n", i, current->tuple[i]);
                     printf("%c", current->tuple[i]);
                 }
-
+                printf("\n");
                 current = current->next;
             } while(current != NULL);
         }
