@@ -253,7 +253,7 @@ bool ts_inp(const char* tuple_name, field_t fields[], const int fields_amount) {
 #ifndef NDEBUG
         printf("TEMPLATE SEGMENT SIZE:%d\n", template_segment_size);
         for(size_t i = 0;i < template_segment_size;i++) {
-            printf("%d:%c", (unsigned char)(buffer[i]), buffer[i]);
+            printf("%d -> %d:%c", i, (unsigned char)(buffer[i]), buffer[i]);
             printf("\n");
         }
 #endif // NDEBUG
@@ -314,6 +314,8 @@ bool ts_rdp(const char* tuple_name, field_t fields[], const int fields_amount) {
     } else {
         // TODO everything went correctly
     }
+
+    send_message(RDP, fields_amount, buffer, template_segment_size);
 
     // Sending a template by network
 

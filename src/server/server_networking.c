@@ -182,9 +182,12 @@ int main(int argc, char **argv) {
                     }
                 } else if(message.operation_type == RDP) {
                     char* tuple = get_tuple(&ts, message.tuple, message.fields_amount, pos - HEADER_LENGTH);
+                    printf("Checking Tuple Read!\n");
                     if(tuple != NULL) {
+                        printf("Tuple Found!\n");
                         // send_message(&net, ACK, message.fields_amount, message.tuple, size);
                     } else {
+                        printf("Tuple Not Found!\n");
                         // send_message(&net, ACK, 0, NULL, 0);
                     }
                 } else if(message.operation_type == OUT) {

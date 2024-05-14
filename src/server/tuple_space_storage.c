@@ -42,11 +42,6 @@ static node* allocate_new_tuple(const char* const tuple, const size_t size) {
 
 // Compares given C-string with tuples in tuple_space based on provided template
 static bool compare_tuples(const char* const tuple, const char* const tuple_template, size_t size) {
-    if(strncmp(tuple, tuple_template, size) == 0) {
-        return true;
-    }
-    return false;
-
     // #define INT_YES 1
     // #define INT_NO 2
     // #define FLOAT_YES 3
@@ -63,22 +58,25 @@ static bool compare_tuples(const char* const tuple, const char* const tuple_temp
     if(strcmp(tuple, tuple_template) != 0) {
         return false;
     }
+    printf("Comparing name\n%s\n%s\n", tuple, tuple_template);
     current_position += strlen(tuple) + 1;    // Length of tuple name + '\0'
     index = current_position;
 
     // TODO change below while to one macro which will take as arguments YES, NO and WIDTH values
 
     // Comparing tuples fields
-    while(current_position != END_MESSAGE) {
+    while(tuple_template[current_position] != END_MESSAGE) {
         switch(tuple[index]) {
             case INT_YES: {
                 if(tuple_template[current_position] == INT_YES) {
                     if(memcmp(tuple + index + 1, tuple_template + current_position + 1, INT_WIDTH) != 0) {
                         return false;
                     }
+                    printf("Comparing int\n%d\n%d\n", (int)(tuple + index + 1), (int)(tuple_template + current_position + 1));
                     index += INT_WIDTH + 1;
                     current_position += INT_WIDTH + 1;
                 } else if(tuple_template[current_position] == INT_NO) {
+                    printf("Comparing int NO\n");
                     index += INT_WIDTH + 1;
                     current_position += 1;
                 } else {
@@ -91,9 +89,12 @@ static bool compare_tuples(const char* const tuple, const char* const tuple_temp
                     if(memcmp(tuple + index + 1, tuple_template + current_position + 1, FLOAT_WIDTH) != 0) {
                         return false;
                     }
+                    printf("Comparing float\n%d\n%d\n", (int)(tuple + index + 1), (int)(tuple_template + current_position + 1));
                     index += FLOAT_WIDTH + 1;
                     current_position += FLOAT_WIDTH + 1;
+                    printf("Current: index:%lu position:%lu\n", index, current_position);
                 } else if(tuple_template[current_position] == FLOAT_NO) {
+                    printf("Comparing float NO\n");
                     index += FLOAT_WIDTH + 1;
                     current_position += 1;
                 } else {
@@ -106,10 +107,13 @@ static bool compare_tuples(const char* const tuple, const char* const tuple_temp
                     if(memcmp(tuple + index + 1, tuple_template + current_position + 1, strlen(tuple + index + 1)) != 0) {
                         return false;
                     }
-                    index += strlen(tuple + index + 1) + 1;
-                    current_position += strlen(tuple + index + 1) + 1;
+                    printf("Comparing string\n%s\n%s\n", tuple + index + 1, tuple_template + current_position + 1);
+                    index += strlen(tuple + index + 1) + 1 + 1;
+                    current_position += strlen(tuple_template + current_position + 1) + 1 + 1;
+                    printf("Current: index:%lu position:%lu\n", index, current_position);
                 } else if(tuple_template[current_position] == STRING_NO) {
-                    index += strlen(tuple + index + 1) + 1;
+                    printf("Comparing string NO\n");
+                    index += strlen(tuple + index + 1) + 1 + 1;
                     current_position += 1;
                 } else {
                     return false;
@@ -119,6 +123,7 @@ static bool compare_tuples(const char* const tuple, const char* const tuple_temp
             default: {
                 // TODO log error
                 printf("Unknown type of data in provided template");
+                return false;
                 break;
             }
         }
