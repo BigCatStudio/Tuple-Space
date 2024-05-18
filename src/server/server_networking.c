@@ -158,6 +158,7 @@ int main(int argc, char **argv) {
 
                 ALP_message message;
                 decode_message(&message, packet_buffer, pos);
+
                 
                 printf("\nMessage Received from Client %s:%d\n\tSIZE:%lu\n\tHEADER:\n\t\toperation type:%d\n\t\tdevice ID:%d\n\t\tfields_amount:%d\n\tMESSAGE:", 
                     inet_ntoa(net.client_info.sin_addr), \
