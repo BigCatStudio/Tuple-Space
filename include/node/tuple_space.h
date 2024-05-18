@@ -28,16 +28,14 @@
 #define TS_FAILURE 0
 
 typedef struct {
-    int is_actual; /* does the data member contains data */
-    int type; /* what is the type of the data member */
+    uint8_t is_actual; /* does the data member contains data */
+    uint8_t type; /* what is the type of the data member */
     union {
-        int int_field;
+        uint32_t int_field;
         float float_field;
         char* string_field;
     } data;
 } field_t; /* a new type corresponding to one field of a tuple */
-
-
 
 /* API */
 // TODO MOVE ALL COMMENTS ABOU WHAT FUNCTIONS DO FROM .C FILE TO THIS .H FILE
@@ -50,9 +48,9 @@ void destroy_tuple(field_t* tuples, const size_t fields_amount);
 /* they return status of operation: */
 /*   0 - operation successful */
 /*   1 - operation failed */
-bool ts_out(const char* tuple_name, field_t fields[const], const int fields_amount);
-bool ts_inp(const char* tuple_name, field_t fields[], const int fields_amount);
-bool ts_rdp(const char* tuple_name, field_t fields[], const int fields_amount);
+bool ts_out(const char* tuple_name, field_t fields[const], const size_t fields_amount);
+bool ts_inp(const char* tuple_name, field_t fields[], const size_t fields_amount);
+bool ts_rdp(const char* tuple_name, field_t fields[], const size_t fields_amount);
 
 
 #endif  // TUPLE_SPACE_H

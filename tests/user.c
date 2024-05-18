@@ -9,9 +9,7 @@ int main(int argc, char* argv[argc + 1]) {
 
     // Has to be called always beforte any operations on tuples
     setup_networking();
-
-    int nice_power;
-    double temp, pi;
+    
     field_t my_tuple[3]; /* an array of fields (name not included) */
     field_t my_template[3];
     /* make a tuple */

@@ -59,27 +59,25 @@ bool setup_networking() {
     net.node_config.ai_flags = AI_PASSIVE;
 
     if (getaddrinfo(NULL, CLIENT_PORT, &(net.node_config), &(net.node_net_config)) != 0) {     // Setting addrinfo struct to proper values
-        printf("getaddrinfo not working\n");
-        printf("ERROR: %s (%s:%d)\n", strerror(errno), __FILE__, __LINE__);
-        exit(-1);
+        printf("ERROR: %s:%s (%s:%d)\n","getaddrinfo not working", strerror(errno), __FILE__, __LINE__);
+        return false;
     } else {
-        printf("Address info of server set.\n");
+        printf("Address info of client set\n");
     }
 
     if ((net.socket_info = socket(net.node_net_config->ai_family, net.node_net_config->ai_socktype, net.node_net_config->ai_protocol)) == -1) { // Defining socket
-        printf("socket not working\n");
-        printf("ERROR: %s (%s:%d)\n", strerror(errno), __FILE__, __LINE__);
+        printf("ERROR: %s:%s (%s:%d)\n", "socket not working", strerror(errno), __FILE__, __LINE__);
         freeaddrinfo(net.node_net_config);
-        exit(-1);
+        return false;
     } else {
-        printf("Socket created.\n");
+        printf("Socket created\n");
     }
 
     if(bind(net.socket_info, net.node_net_config->ai_addr, net.node_net_config->ai_addrlen) != 0) {   // Binding socket
-        printf("Bind error: %s (%s:%d)\n", strerror(errno), __FILE__, __LINE__);
+        printf("ERROR: %s:%s (%s:%d)\n", "binding not working", strerror(errno), __FILE__, __LINE__);
         freeaddrinfo(net.node_net_config);
         close(net.socket_info);
-        exit(-1);
+        return false;
     } else {
         printf("Bind succuess\n");
     }
@@ -89,12 +87,12 @@ bool setup_networking() {
     net.server_config.ai_socktype = SOCK_DGRAM;
 
     if (getaddrinfo(SERVER_ADDRESS, SERVER_PORT, &net.server_config, &net.server_net_config ) != 0) { 
-        printf("getaddrinfo, error: %s (%s:%d)\n", strerror(errno), __FILE__, __LINE__);
+        printf("ERROR: %s:%s (%s:%d)\n","getaddrinfo not working", strerror(errno), __FILE__, __LINE__);
         freeaddrinfo(net.node_net_config);
         close(net.socket_info);
-        exit(-1);
+        return false;
     } else {
-        printf("Host info set\n");
+        printf("Address info of server set\n");
     }
 
     return true;
@@ -107,14 +105,14 @@ void clean_networking() {
     close(net.socket_info);
 }
 
-void send_message(uint8_t operation_type, uint8_t fields_amount, char* buffer, uint32_t size) {
+bool send_message(uint8_t operation_type, uint8_t fields_amount, char* buffer, uint32_t size) {
     char header[3];
-    memset(header, 0, sizeof(header)); // Clearing header
-    memset(packet_buffer, 0, PACKET_BUFFER_LENGTH); // Clearing buffer
+    memset(header, 0, sizeof(header));
+    memset(packet_buffer, 0, PACKET_BUFFER_LENGTH);
 
     if(!create_header(header, operation_type, fields_amount)) {
-        printf("Provided values are invalid\n");    // TODO checking values should be earlier in function call's stack
-        // TODO add exiting from function with error
+        printf("ERROR: %s:%s (%s:%d)\n","provided values are invalid", strerror(errno), __FILE__, __LINE__);    // TODO checking values should be earlier in function call's stack
+        return false;
     } else {
         packet_buffer[0] = header[0];
         packet_buffer[1] = header[1];
@@ -130,11 +128,13 @@ void send_message(uint8_t operation_type, uint8_t fields_amount, char* buffer, u
 
     net.pos = sendto(net.socket_info, packet_buffer, size + HEADER_LENGTH, 0, net.server_net_config->ai_addr, net.server_net_config->ai_addrlen);
     if(net.pos < 0) {
-        // printf("ERROR: %s\n", strerror(errno), __FILE__, __LINE__);
+        printf("ERROR: %s:%s (%s:%d)\n","sending failed", strerror(errno), __FILE__, __LINE__);
+        return false;
     } else if(net.pos > 0) {
         printf("Succesfully sent %d bytes\n", net.pos);
     }
-
+    
+    return true;
     // TODO Wait for packet with tuple from server 
 }
 

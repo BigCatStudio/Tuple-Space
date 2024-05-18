@@ -18,6 +18,8 @@ use keywords:
 - inline (for functions that are short, possible to replace, also check macro for always inline)
 - restrict (memory pointed to by pointer cant be changed from any other place than that pointer)
 
+- provide possibility for user to define IP and port of node and same for server
+- make logging mechanism (all succeeded messages and errors) -> writing to console and log file
 
 gcc -Wall -o user src/node/node_networking.c src/node/tuple_space.c tests/user.c -I ./include
 
