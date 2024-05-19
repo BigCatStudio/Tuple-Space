@@ -59,7 +59,8 @@ bool setup_networking();
 
 void clean_networking();
 
-void send_message(uint8_t operation_type, uint8_t fields_amount, char* tuple, uint32_t size);
+bool send_message(uint8_t operation_type, uint8_t fields_amount, char* tuple, uint32_t size);
 
+bool receive_message();
 
 #endif  // NODE_NETWORKING_H

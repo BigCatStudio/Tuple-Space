@@ -313,6 +313,7 @@ bool ts_rdp(const char* tuple_name, field_t fields[], const size_t fields_amount
     send_message(RDP, fields_amount, buffer, template_segment_size);
 
     // TODO receive response tuple
+    receive_message(buffer, fields);
 
     // Get buffer of char from network
     size_t data_segment_size = deserialize_data_segment(tuple_name, fields);

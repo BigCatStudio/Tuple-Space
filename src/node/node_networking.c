@@ -140,6 +140,11 @@ bool send_message(uint8_t operation_type, uint8_t fields_amount, char* buffer, u
     // TODO Wait for packet with tuple from server 
 }
 
+bool receive_message(char* buffer) {
+    size_t pos = recvfrom(net.socket, packet_buffer, PACKET_BUFFER_LENGTH, 0, (struct sockaddr*) &(net.client_info), &(net.c_len));
+    ALP_message message;
+    decode_message(&message, packet_buffer, pos);
+}
 
 
 // int main(int argc, char **argv) {
