@@ -64,7 +64,7 @@ static bool compare_tuples(const char* const tuple, const char* const tuple_temp
                     if(memcmp(tuple + index + 1, tuple_template + current_position + 1, INT_WIDTH) != 0) {
                         return false;
                     }
-                    printf("Comparing int\n%d\n%d\n", (int)(tuple + index + 1), (int)(tuple_template + current_position + 1));
+                    printf("Comparing int\n");
                     index += INT_WIDTH + 1;
                     current_position += INT_WIDTH + 1;
                 } else if(tuple_template[current_position] == INT_NO) {
@@ -81,7 +81,7 @@ static bool compare_tuples(const char* const tuple, const char* const tuple_temp
                     if(memcmp(tuple + index + 1, tuple_template + current_position + 1, FLOAT_WIDTH) != 0) {
                         return false;
                     }
-                    printf("Comparing float\n%d\n%d\n", (int)(tuple + index + 1), (int)(tuple_template + current_position + 1));
+                    printf("Comparing float\n");
                     index += FLOAT_WIDTH + 1;
                     current_position += FLOAT_WIDTH + 1;
                     printf("Current: index:%lu position:%lu\n", index, current_position);
@@ -120,7 +120,10 @@ static bool compare_tuples(const char* const tuple, const char* const tuple_temp
         }
     }
     
-    *size = index;  // Size of found tuple
+    if(size != NULL) {
+        *size = index;  // Size of found tuple for get_tuple function
+    }
+    
     return true;
 }
 
@@ -245,7 +248,7 @@ bool remove_tuple(tuple_space* ts, const char* const tuple, const uint8_t fields
 
     node* current = ts->lists[index].head;
 
-    if(compare_tuples(current->tuple, tuple, size)) {   // Checking if head matches tuple
+    if(compare_tuples(current->tuple, tuple, NULL)) {   // Checking if head matches tuple
         ts->lists[index].head = current->next;  // NULL or next tuple
         free(current->tuple);
         free(current);
@@ -256,7 +259,7 @@ bool remove_tuple(tuple_space* ts, const char* const tuple, const uint8_t fields
     }
 
     while(current->next != NULL) {  // Checking rest of tuples
-        if(compare_tuples(current->next->tuple, tuple, size)) {
+        if(compare_tuples(current->next->tuple, tuple, NULL)) {
             node* next = current->next->next;   // NULL or next tuple
             free(current->next->tuple);
             free(current->next);

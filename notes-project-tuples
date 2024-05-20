@@ -22,10 +22,6 @@ use keywords:
 - make logging mechanism (all succeeded messages and errors) -> writing to console and log file
 
 gcc -Wall -o user src/node/node_networking.c src/node/tuple_space.c tests/user.c -I ./include
-
-gcc -Wall -o node_network src/node/node_networking.c -I ./include
-gcc -Wall -o server_network src/server/server_networking.c -I ./include
-
 gcc -Wall -o read_test src/node/node_networking.c src/node/tuple_space.c tests/read_test.c -I ./include
 
-gcc -Wall -o tuple src/server/tuple_space_storage.c -I ./include
+gcc -Wall -o server src/server/tuple_space_storage.c src/server/server_networking.c -I ./include

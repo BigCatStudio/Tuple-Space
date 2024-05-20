@@ -11,7 +11,7 @@ int main(int argc, char* argv[argc + 1]) {
     setup_networking();
     
     field_t my_tuple[3]; /* an array of fields (name not included) */
-    field_t my_template[3];
+    // field_t my_template[3];
     /* make a tuple */
     my_tuple[0].is_actual = TS_YES;
     my_tuple[0].type = TS_INT;
@@ -23,7 +23,7 @@ int main(int argc, char* argv[argc + 1]) {
     my_tuple[2].type = TS_FLOAT;
     my_tuple[2].data.float_field = 3.14;
     /* add a tuple to the tuple space */
-    bool status = ts_inp("nice_constants", my_tuple, 3); /* ("nice_constants",128,3.14) */
+    bool status = ts_out("nice_constants", my_tuple, 3); /* ("nice_constants",128,3.14) */
     if(!status) {
         fprintf(stderr, "Error while doing inp operation\n");
     }

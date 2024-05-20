@@ -226,6 +226,9 @@ bool ts_out(const char* tuple_name, field_t fields[const], const size_t fields_a
     send_message(OUT, fields_amount, buffer, data_segment_size);
 
     // TODO Wait for ACK
+    if(!receive_message(buffer)) {
+        return false;
+    } 
 
     return true;
 }
@@ -245,7 +248,7 @@ bool ts_inp(const char* tuple_name, field_t fields[], const size_t fields_amount
 #ifndef NDEBUG
         printf("TEMPLATE SEGMENT SIZE:%d\n", template_segment_size);
         for(size_t i = 0;i < template_segment_size;i++) {
-            printf("%d -> %d:%c", i, (unsigned char)(buffer[i]), buffer[i]);
+            printf("%lu -> %d:%c", i, (unsigned char)(buffer[i]), buffer[i]);
             printf("\n");
         }
 #endif // NDEBUG
@@ -254,7 +257,9 @@ bool ts_inp(const char* tuple_name, field_t fields[], const size_t fields_amount
     send_message(INP, fields_amount, buffer, template_segment_size);
     // TODO wait for response tuple
 
-    receive_message(buffer);
+    if(!receive_message(buffer)) {
+        return false;
+    } 
 
     // decode 
     int data_segment_size = deserialize_data_segment(tuple_name, fields);
@@ -304,9 +309,9 @@ bool ts_rdp(const char* tuple_name, field_t fields[], const size_t fields_amount
         return false;
     } else {
 #ifndef NDEBUG
-        printf("TEMPLATE SEGMENT SIZE:%d\n", template_segment_size);
+        printf("TEMPLATE SEGMENT SIZE:%lu\n", template_segment_size);
         for(size_t i = 0;i < template_segment_size;i++) {
-            printf("%d -> %d:%c", i, (unsigned char)(buffer[i]), buffer[i]);
+            printf("%lu -> %d:%c", i, (unsigned char)(buffer[i]), buffer[i]);
             printf("\n");
         }
 #endif // NDEBUG
@@ -330,7 +335,7 @@ bool ts_rdp(const char* tuple_name, field_t fields[], const size_t fields_amount
         return false;
     } else {
 #ifndef NDEBUG
-        printf("\nDATA SEGMENT SIZE:%d\n", data_segment_size);
+        printf("\nDATA SEGMENT SIZE:%lu\n", data_segment_size);
         for(size_t i = 0;i < fields_amount;i++) {
             switch(fields[i].type) {
                 case TS_INT: {

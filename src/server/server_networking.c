@@ -176,8 +176,15 @@ int main(int argc, char **argv) {
 
 
                 if(message.operation_type == INP) {
-                    if(add_tuple(&ts, message.tuple, message.fields_amount, pos - HEADER_LENGTH)) {
-                        send_message(&net, ACK, message.fields_amount, NULL, 0);
+                    size_t size;
+                    char* tuple = get_tuple(&ts, message.tuple, message.fields_amount, &size);
+
+                    if(tuple != NULL) {      // Sending ACK only if tuple was correctly added
+                        if(!remove_tuple(&ts, message.tuple, message.fields_amount, pos - HEADER_LENGTH)) {
+                            // TODO log error
+                            // Tuple found eariler but could not be deleted from tuple space
+                        }
+                        send_message(&net, ACK, message.fields_amount, tuple, size);
                     } else {
                         send_message(&net, ACK, 0, NULL, 0);
                     }
@@ -194,15 +201,8 @@ int main(int argc, char **argv) {
                         send_message(&net, ACK, 0, NULL, 0);
                     }
                 } else if(message.operation_type == OUT) {
-                    size_t size;
-                    char* tuple = get_tuple(&ts, message.tuple, message.fields_amount, &size);
-
-                    if(tuple != NULL) {      // Sending ACK only if tuple was correctly added
-                        if(!remove_tuple(&ts, message.tuple, message.fields_amount, pos - HEADER_LENGTH)) {
-                            // TODO log error
-                            // Tuple found eariler but could not be deleted from tuple space
-                        }
-                        send_message(&net, ACK, message.fields_amount, tuple, size);
+                    if(add_tuple(&ts, message.tuple, message.fields_amount, pos - HEADER_LENGTH)) {
+                        send_message(&net, ACK, message.fields_amount, NULL, 0);
                     } else {
                         send_message(&net, ACK, 0, NULL, 0);
                     }

@@ -48,8 +48,14 @@ void destroy_tuple(field_t* tuples, const size_t fields_amount);
 /* they return status of operation: */
 /*   0 - operation successful */
 /*   1 - operation failed */
+
+// sending tuple to server
 bool ts_out(const char* tuple_name, field_t fields[const], const size_t fields_amount);
+
+// Extracting tuple from server permanently
 bool ts_inp(const char* tuple_name, field_t fields[], const size_t fields_amount);
+
+// Reading tuple from server
 bool ts_rdp(const char* tuple_name, field_t fields[], const size_t fields_amount);
 
 
