@@ -273,6 +273,30 @@ bool remove_tuple(tuple_space* ts, const char* const tuple, const uint8_t fields
     return false;
 }
 
+// Dynamic allocation:
+// tuple_list* lists
+// node* head, node* next
+// char* tuple
+
+void clear_tuple_space(tuple_space* ts) {
+    if(ts == NULL) {
+        return;
+    }
+
+    for(size_t i = 0;i < ts->lists_amount;i++) {
+        node* current = ts->lists[i].head;
+        node* delete_current;
+
+        while(current != NULL) {
+            delete_current = current;
+            current = current->next;
+            free(delete_current->tuple);
+            free(delete_current);
+        }
+    }
+    free(ts->lists);
+}
+
 // For debugging purpouses, displayes whole tuple_space
 void display_tuple_space(tuple_space* ts) {
     printf("\nCapacity:%lu\n", ts->capacity);

@@ -209,6 +209,7 @@ int main(int argc, char **argv) {
         }
     }
     // Clearing space and freeing resources
+    clear_tuple_space(&ts);
     freeaddrinfo(net.r);
     close(net.socket);
 

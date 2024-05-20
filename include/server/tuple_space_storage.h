@@ -73,6 +73,9 @@ bool add_tuple(tuple_space* ts, const char* restrict const tuple, const uint8_t 
 // Returns true if tuple was removed and false if tuple was not found
 bool remove_tuple(tuple_space* ts, const char* const tuple, const uint8_t fields_amount, const size_t size);
 
+// Frees allocated memory for tuple space
+void clear_tuple_space(tuple_space* ts);
+
 // For debugging purpouses, displayes whole tuple_space
 void display_tuple_space(tuple_space* ts);
 
