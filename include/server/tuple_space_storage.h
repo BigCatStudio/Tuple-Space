@@ -67,7 +67,7 @@ typedef struct {
 
 
 // Returns pointer to tuple in specified list
-char* get_tuple(tuple_space* ts, char* tuple, const uint8_t fields_amount, size_t size);
+char* get_tuple(tuple_space* ts, char* tuple, const uint8_t fields_amount, size_t* size);
 
 // Adds tuple to tuple_space
 bool add_tuple(tuple_space* ts, const char* restrict const tuple, const uint8_t fields_amount, const size_t size);

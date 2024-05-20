@@ -42,7 +42,7 @@ static node* allocate_new_tuple(const char* const tuple, const size_t size) {
 }
 
 // Compares given C-string with tuples in tuple_space based on provided template
-static bool compare_tuples(const char* const tuple, const char* const tuple_template, size_t size) {
+static bool compare_tuples(const char* const tuple, const char* const tuple_template, size_t* size) {
     size_t current_position = 0;
     size_t index = 0;
 
@@ -120,7 +120,7 @@ static bool compare_tuples(const char* const tuple, const char* const tuple_temp
         }
     }
     
-
+    *size = index;  // Size of found tuple
     return true;
 }
 
@@ -153,7 +153,7 @@ static void check_empty_list(tuple_space* ts, size_t index) {
 }
 
 // Returns pointer to tuple in specified list
-char* get_tuple(tuple_space* ts, char* tuple, const uint8_t fields_amount, size_t size) {
+char* get_tuple(tuple_space* ts, char* tuple, const uint8_t fields_amount, size_t* size) {
     size_t index = find_list(ts, fields_amount);
     if(index == -1) {
         return NULL;

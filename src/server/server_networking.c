@@ -177,28 +177,34 @@ int main(int argc, char **argv) {
 
                 if(message.operation_type == INP) {
                     if(add_tuple(&ts, message.tuple, message.fields_amount, pos - HEADER_LENGTH)) {
-                        // send_message(&net, ACK, message.fields_amount, message.tuple, size);
+                        send_message(&net, ACK, message.fields_amount, NULL, 0);
                     } else {
-                        // send_message(&net, ACK, 0, NULL, 0);
+                        send_message(&net, ACK, 0, NULL, 0);
                     }
                 } else if(message.operation_type == RDP) {
-                    char* tuple = get_tuple(&ts, message.tuple, message.fields_amount, pos - HEADER_LENGTH);
+                    size_t size;
+                    char* tuple = get_tuple(&ts, message.tuple, message.fields_amount, &size);
+
                     printf("Checking Tuple Read!\n");
                     if(tuple != NULL) {
                         printf("Tuple Found!\n");
-                        // send_message(&net, ACK, message.fields_amount, message.tuple, size);
+                        send_message(&net, ACK, message.fields_amount, tuple, size);
                     } else {
                         printf("Tuple Not Found!\n");
-                        // send_message(&net, ACK, 0, NULL, 0);
+                        send_message(&net, ACK, 0, NULL, 0);
                     }
                 } else if(message.operation_type == OUT) {
-                    char* tuple = get_tuple(&ts, message.tuple, message.fields_amount, pos - HEADER_LENGTH);
+                    size_t size;
+                    char* tuple = get_tuple(&ts, message.tuple, message.fields_amount, &size);
+
                     if(tuple != NULL) {      // Sending ACK only if tuple was correctly added
                         if(!remove_tuple(&ts, message.tuple, message.fields_amount, pos - HEADER_LENGTH)) {
                             // TODO log error
                             // Tuple found eariler but could not be deleted from tuple space
                         }
-                        // send_message(&net, ACK, 0, NULL, 0);
+                        send_message(&net, ACK, message.fields_amount, tuple, size);
+                    } else {
+                        send_message(&net, ACK, 0, NULL, 0);
                     }
                 } else if(message.operation_type == HELLO) {
                     // send_message(&net, ACK, 0, NULL, 0);
