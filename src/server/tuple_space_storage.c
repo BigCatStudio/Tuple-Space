@@ -50,7 +50,6 @@ static bool compare_tuples(const char* const tuple, const char* const tuple_temp
     if(strcmp(tuple, tuple_template) != 0) {
         return false;
     }
-    printf("Comparing name\n%s\n%s\n", tuple, tuple_template);
     current_position += strlen(tuple) + 1;    // Length of tuple name + '\0'
     index = current_position;
 
@@ -64,11 +63,9 @@ static bool compare_tuples(const char* const tuple, const char* const tuple_temp
                     if(memcmp(tuple + index + 1, tuple_template + current_position + 1, INT_WIDTH) != 0) {
                         return false;
                     }
-                    printf("Comparing int\n");
                     index += INT_WIDTH + 1;
                     current_position += INT_WIDTH + 1;
                 } else if(tuple_template[current_position] == INT_NO) {
-                    printf("Comparing int NO\n");
                     index += INT_WIDTH + 1;
                     current_position += 1;
                 } else {
@@ -81,12 +78,9 @@ static bool compare_tuples(const char* const tuple, const char* const tuple_temp
                     if(memcmp(tuple + index + 1, tuple_template + current_position + 1, FLOAT_WIDTH) != 0) {
                         return false;
                     }
-                    printf("Comparing float\n");
                     index += FLOAT_WIDTH + 1;
                     current_position += FLOAT_WIDTH + 1;
-                    printf("Current: index:%lu position:%lu\n", index, current_position);
                 } else if(tuple_template[current_position] == FLOAT_NO) {
-                    printf("Comparing float NO\n");
                     index += FLOAT_WIDTH + 1;
                     current_position += 1;
                 } else {
@@ -99,12 +93,9 @@ static bool compare_tuples(const char* const tuple, const char* const tuple_temp
                     if(memcmp(tuple + index + 1, tuple_template + current_position + 1, strlen(tuple + index + 1)) != 0) {
                         return false;
                     }
-                    printf("Comparing string\n%s\n%s\n", tuple + index + 1, tuple_template + current_position + 1);
                     index += strlen(tuple + index + 1) + 1 + 1;
                     current_position += strlen(tuple_template + current_position + 1) + 1 + 1;
-                    printf("Current: index:%lu position:%lu\n", index, current_position);
                 } else if(tuple_template[current_position] == STRING_NO) {
-                    printf("Comparing string NO\n");
                     index += strlen(tuple + index + 1) + 1 + 1;
                     current_position += 1;
                 } else {

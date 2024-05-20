@@ -192,12 +192,9 @@ int main(int argc, char **argv) {
                     size_t size;
                     char* tuple = get_tuple(&ts, message.tuple, message.fields_amount, &size);
 
-                    printf("Checking Tuple Read!\n");
                     if(tuple != NULL) {
-                        printf("Tuple Found!\n");
                         send_message(&net, ACK, message.fields_amount, tuple, size);
                     } else {
-                        printf("Tuple Not Found!\n");
                         send_message(&net, ACK, 0, NULL, 0);
                     }
                 } else if(message.operation_type == OUT) {
