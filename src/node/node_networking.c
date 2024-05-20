@@ -149,50 +149,17 @@ bool receive_message(char* buffer) {
 
     ALP_message message;
     decode_message(&message, packet_buffer, pos);
+
+    printf("\nMessage Received from Server %s:%d\n\tSIZE:%lu\n\tHEADER:\n\t\toperation type:%d\n\t\tdevice ID:%d\n\t\tfields_amount:%d\n", 
+                    inet_ntoa(net.server_net_info.sin_addr), \
+                    ntohs(net.server_net_info.sin_port), \
+                    pos, \
+                    message.operation_type, \
+                    message.device_id, \
+                    message.fields_amount
+    );
+
     memcpy(buffer, message.tuple, pos - 2);
 
     return true;
 }
-
-
-// int main(int argc, char **argv) {
-//     // ---------------- Connecting ------------------
-//     networking_stack net;
-//     setup_networking(&net);
-
-
-//     // snprintf(packet_buffer, PACKET_BUFFER_LENGTH, NHELLO, CLIENT_PORT);
-//     strncpy(packet_buffer, "Test Message", strlen("Test Message") + 1);
-//     net.pos = sendto(net.socket_info, packet_buffer, strlen(packet_buffer), 0, net.server_net_config->ai_addr, net.server_net_config->ai_addrlen);
-//     if(net.pos < 0) {
-//         // printf("ERROR: %s\n", strerror(errno), __FILE__, __LINE__);
-//     } else if(net.pos > 0) {
-//         printf("Succesfully sent %d bytes\n", net.pos);
-//     }
-
-
-//     // Exchanging informations with client
-//     srand(time(NULL));
-//     for(;;) {
-//         // Receiveing from client
-//         if((net.pos = recvfrom(net.socket_info, packet_buffer, PACKET_BUFFER_LENGTH, 0, (struct sockaddr*) &(net.server_net_info), &(net.server_info_size))) < 0){
-//             printf("ERROR: %s\n", strerror(errno));
-//             freeaddrinfo(net.node_net_config);
-//             freeaddrinfo(net.server_net_config);
-//             close(net.socket_info);
-//             exit(-1);
-//         }  else {
-//             printf("Succesfully received %d byte message\n", net.pos);
-//         }
-//         packet_buffer[net.pos] = '\0';
-
-
-//         // printf("Message Received from %s:%d\n       HEADER:    %s\n       MESSAGE:   %s\n\n", inet_ntoa(server_net_info.sin_addr), ntohs(server_net_info.sin_port), header, message);
-//         if((net.pos = sendto(net.socket_info, packet_buffer, strlen(packet_buffer), 0, (const struct sockaddr *) &(net.server_net_info), net.server_info_size)) < 0) {
-//             // TODO Do something if server did not send hello
-//         }
-        
-//     }
-
-//     return 0;
-// }

@@ -254,6 +254,8 @@ bool ts_inp(const char* tuple_name, field_t fields[], const size_t fields_amount
     send_message(INP, fields_amount, buffer, template_segment_size);
     // TODO wait for response tuple
 
+    receive_message(buffer);
+
     // decode 
     int data_segment_size = deserialize_data_segment(tuple_name, fields);
     if(data_segment_size < 0) {
