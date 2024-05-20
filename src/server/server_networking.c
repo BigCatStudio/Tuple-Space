@@ -204,10 +204,10 @@ int main(int argc, char **argv) {
                         send_message(&net, ACK, 0, NULL, 0);
                     }
                 } else if(message.operation_type == HELLO) {
-                    // send_message(&net, ACK, 0, NULL, 0);
+                    send_message(&net, ACK, 0, NULL, 0);
                 }
 
-                display_tuple_space(&ts);   // TODO remove from prod
+                // display_tuple_space(&ts);   // TODO remove from prod
             }
         }
     }

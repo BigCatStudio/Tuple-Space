@@ -46,67 +46,6 @@ static bool create_header(char* header, uint8_t operation_type, uint8_t fields_a
     return true;
 }
 
-
-bool setup_networking() {
-    net.node_net_config = NULL;
-    net.server_net_config = NULL;
-    net.server_info_size = sizeof(net.server_net_info);
-
-    // Setting variables for UDP connection type
-    memset(&net.node_config, 0, sizeof(struct addrinfo)); // Setting node_config bytes to 0
-    net.node_config.ai_family = PF_INET;
-    net.node_config.ai_socktype = SOCK_DGRAM;
-    net.node_config.ai_flags = AI_PASSIVE;
-
-    if (getaddrinfo(NULL, CLIENT_PORT, &(net.node_config), &(net.node_net_config)) != 0) {     // Setting addrinfo struct to proper values
-        printf("ERROR: %s:%s (%s:%d)\n","getaddrinfo not working", strerror(errno), __FILE__, __LINE__);
-        return false;
-    } else {
-        printf("Address info of client set\n");
-    }
-
-    if ((net.socket_info = socket(net.node_net_config->ai_family, net.node_net_config->ai_socktype, net.node_net_config->ai_protocol)) == -1) { // Defining socket
-        printf("ERROR: %s:%s (%s:%d)\n", "socket not working", strerror(errno), __FILE__, __LINE__);
-        freeaddrinfo(net.node_net_config);
-        return false;
-    } else {
-        printf("Socket created\n");
-    }
-
-    if(bind(net.socket_info, net.node_net_config->ai_addr, net.node_net_config->ai_addrlen) != 0) {   // Binding socket
-        printf("ERROR: %s:%s (%s:%d)\n", "binding not working", strerror(errno), __FILE__, __LINE__);
-        freeaddrinfo(net.node_net_config);
-        close(net.socket_info);
-        return false;
-    } else {
-        printf("Bind succuess\n");
-    }
-
-    memset(&net.server_config, 0, sizeof(struct addrinfo));
-    net.server_config.ai_family = PF_INET;
-    net.server_config.ai_socktype = SOCK_DGRAM;
-
-    if (getaddrinfo(SERVER_ADDRESS, SERVER_PORT, &net.server_config, &net.server_net_config ) != 0) { 
-        printf("ERROR: %s:%s (%s:%d)\n","getaddrinfo not working", strerror(errno), __FILE__, __LINE__);
-        freeaddrinfo(net.node_net_config);
-        close(net.socket_info);
-        return false;
-    } else {
-        printf("Address info of server set\n");
-    }
-
-    // TODO send hello to server
-
-    return true;
-}
-
-void clean_networking() {
-    // Clearing space and freeing resources
-    freeaddrinfo(net.node_net_config);
-    freeaddrinfo(net.server_net_config);
-    close(net.socket_info);
-}
-
 bool send_message(uint8_t operation_type, uint8_t fields_amount, char* buffer, uint32_t size) {
     char header[3];
     memset(header, 0, sizeof(header));
@@ -159,7 +98,72 @@ bool receive_message(char* buffer) {
                     message.fields_amount
     );
 
-    memcpy(buffer, message.tuple, pos - 2);
+    if(buffer != NULL) {    // ACk and HELLO have buffer equall NULL
+        memcpy(buffer, message.tuple, pos - 2);
+    }
 
     return true;
+}
+
+bool setup_networking() {
+    net.node_net_config = NULL;
+    net.server_net_config = NULL;
+    net.server_info_size = sizeof(net.server_net_info);
+
+    // Setting variables for UDP connection type
+    memset(&net.node_config, 0, sizeof(struct addrinfo)); // Setting node_config bytes to 0
+    net.node_config.ai_family = PF_INET;
+    net.node_config.ai_socktype = SOCK_DGRAM;
+    net.node_config.ai_flags = AI_PASSIVE;
+
+    if (getaddrinfo(NULL, CLIENT_PORT, &(net.node_config), &(net.node_net_config)) != 0) {     // Setting addrinfo struct to proper values
+        printf("ERROR: %s:%s (%s:%d)\n","getaddrinfo not working", strerror(errno), __FILE__, __LINE__);
+        return false;
+    } else {
+        printf("Address info of client set\n");
+    }
+
+    if ((net.socket_info = socket(net.node_net_config->ai_family, net.node_net_config->ai_socktype, net.node_net_config->ai_protocol)) == -1) { // Defining socket
+        printf("ERROR: %s:%s (%s:%d)\n", "socket not working", strerror(errno), __FILE__, __LINE__);
+        freeaddrinfo(net.node_net_config);
+        return false;
+    } else {
+        printf("Socket created\n");
+    }
+
+    if(bind(net.socket_info, net.node_net_config->ai_addr, net.node_net_config->ai_addrlen) != 0) {   // Binding socket
+        printf("ERROR: %s:%s (%s:%d)\n", "binding not working", strerror(errno), __FILE__, __LINE__);
+        freeaddrinfo(net.node_net_config);
+        close(net.socket_info);
+        return false;
+    } else {
+        printf("Bind succuess\n");
+    }
+
+    memset(&net.server_config, 0, sizeof(struct addrinfo));
+    net.server_config.ai_family = PF_INET;
+    net.server_config.ai_socktype = SOCK_DGRAM;
+
+    if (getaddrinfo(SERVER_ADDRESS, SERVER_PORT, &net.server_config, &net.server_net_config ) != 0) { 
+        printf("ERROR: %s:%s (%s:%d)\n","getaddrinfo not working", strerror(errno), __FILE__, __LINE__);
+        freeaddrinfo(net.node_net_config);
+        close(net.socket_info);
+        return false;
+    } else {
+        printf("Address info of server set\n");
+    }
+
+    send_message(HELLO, 0, NULL, 0);
+    if(!receive_message(NULL)) {
+        return false;
+    }
+
+    return true;
+}
+
+void clean_networking() {
+    // Clearing space and freeing resources
+    freeaddrinfo(net.node_net_config);
+    freeaddrinfo(net.server_net_config);
+    close(net.socket_info);
 }

@@ -112,7 +112,7 @@ static bool compare_tuples(const char* const tuple, const char* const tuple_temp
     }
     
     if(size != NULL) {
-        *size = index;  // Size of found tuple for get_tuple function
+        *size = ++index;  // Size of found tuple for get_tuple function
     }
     
     return true;
