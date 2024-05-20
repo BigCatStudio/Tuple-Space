@@ -32,25 +32,17 @@ static node* allocate_new_tuple(const char* const tuple, const size_t size) {
         return NULL;
     }
 
-    for(size_t i = 0;i < size;i++) {
-        // current->tuple[i] = tuple[i];  
-        memcpy(current->tuple, tuple, size); // TODO why memcpy does not work?
-    }
+    // for(size_t i = 0;i < size;i++) {
+    //     // current->tuple[i] = tuple[i];  
+    //      // TODO why memcpy does not work?
+    // }
+    memcpy(current->tuple, tuple, size);
 
     return current;
 }
 
 // Compares given C-string with tuples in tuple_space based on provided template
 static bool compare_tuples(const char* const tuple, const char* const tuple_template, size_t size) {
-    // #define INT_YES 1
-    // #define INT_NO 2
-    // #define FLOAT_YES 3
-    // #define FLOAT_NO 4
-    // #define STRING_YES 5
-    // #define STRING_NO 6
-    // #define END_STRING 0
-    // #define END_MESSAGE 23  // Number of ASCII character for End of Transmission Block 
-
     size_t current_position = 0;
     size_t index = 0;
 
@@ -121,8 +113,7 @@ static bool compare_tuples(const char* const tuple, const char* const tuple_temp
                 break;
             }
             default: {
-                // TODO log error
-                printf("Unknown type of data in provided template");
+                printf("ERROR: %s:%s (%s:%d)\n","unknown type of data in template", strerror(errno), __FILE__, __LINE__);
                 return false;
                 break;
             }
@@ -152,6 +143,7 @@ static void check_empty_list(tuple_space* ts, size_t index) {
             if(new_lists == NULL) {
                 // Memory allocation failed
                 // TODO handle error
+                printf("ERROR: %s:%s (%s:%d)\n","Memory allocation failed", strerror(errno), __FILE__, __LINE__);
             }
 
             ts->lists = new_lists;  // TODO check if all content has been correctly copied to new location
@@ -191,6 +183,8 @@ bool add_tuple(tuple_space* ts, const char* restrict const tuple, const uint8_t 
         if(ts->lists == NULL) {
             // Memory allocation failed
             // TODO handle error
+            printf("ERROR: %s:%s (%s:%d)\n","Memory allocation failed", strerror(errno), __FILE__, __LINE__);
+            return false;
         }
         
         ts->capacity = ALLOCATION_AMOUNT;
@@ -212,6 +206,8 @@ bool add_tuple(tuple_space* ts, const char* restrict const tuple, const uint8_t 
             if(new_lists == NULL) {
                 // Memory allocation failed
                 // TODO handle error
+                printf("ERROR: %s:%s (%s:%d)\n","Memory allocation failed", strerror(errno), __FILE__, __LINE__);
+                return false;
             }
 
             ts->lists = new_lists;  // TODO check if all content has been correctly copied to new location
@@ -272,11 +268,6 @@ bool remove_tuple(tuple_space* ts, const char* const tuple, const uint8_t fields
 
     return false;
 }
-
-// Dynamic allocation:
-// tuple_list* lists
-// node* head, node* next
-// char* tuple
 
 void clear_tuple_space(tuple_space* ts) {
     if(ts == NULL) {

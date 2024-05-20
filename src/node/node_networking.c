@@ -141,9 +141,17 @@ bool send_message(uint8_t operation_type, uint8_t fields_amount, char* buffer, u
 }
 
 bool receive_message(char* buffer) {
-    size_t pos = recvfrom(net.socket, packet_buffer, PACKET_BUFFER_LENGTH, 0, (struct sockaddr*) &(net.client_info), &(net.c_len));
+    size_t pos = recvfrom(net.socket_info, packet_buffer, PACKET_BUFFER_LENGTH, 0, (struct sockaddr*) &(net.server_net_info), &(net.server_info_size));
+    if(pos < 0) {
+        printf("ERROR: %s:%s (%s:%d)\n","failed receiving packet", strerror(errno), __FILE__, __LINE__);
+        return false;
+    }
+
     ALP_message message;
     decode_message(&message, packet_buffer, pos);
+    memcpy(buffer, message.tuple, pos - 2);
+
+    return true;
 }
 
 

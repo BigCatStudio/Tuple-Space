@@ -6,6 +6,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include <errno.h>
+#include <error.h>
 
 // Headers in message payload
 #define INT_YES 1
